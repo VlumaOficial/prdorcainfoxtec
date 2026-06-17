@@ -418,7 +418,7 @@ function calcItem(custo, qtd, pMarg, pImp, descPct, descFix) {
   const baseImp    = comMargem - descVal;
   const total      = pImp > 0 ? baseImp / (1 - pImp / 100) : baseImp;
   const comImposto = total - baseImp;
-  const lucro      = total - comImposto - descVal - custoTotal;  // lucro real líquido
+  const lucro      = baseImp - custoTotal;  // baseImp já é (comMargem - descVal); não subtrair descVal de novo
   return { custoTotal, comMargem, descVal, comImposto, lucro, total };
 }
 
