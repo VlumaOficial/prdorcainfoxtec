@@ -157,11 +157,11 @@ table.items td{padding:5px 4px;vertical-align:middle}
 .page-footer{text-align:center;padding:1rem;font-size:11px;color:var(--text3);border-top:1px solid var(--border)}
 /* Checkbox item */
 .item-chk{display:flex;align-items:center;justify-content:center;gap:4px}
-.item-chk input[type="checkbox"]{display:none}
-.item-chk label{width:20px;height:20px;border-radius:5px;border:1.5px solid var(--border2);background:var(--navy4);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;font-size:11px;flex-shrink:0}
-.item-chk input[type="checkbox"]:checked + label{background:var(--green);border-color:var(--green)}
-.item-chk input[type="checkbox"]:checked + label::after{content:"✓";color:#fff}
-.item-chk label::after{content:""}
+.item-chk input[type="checkbox"],.chk-item input[type="checkbox"]{display:none}
+.item-chk label,.chk-item label{width:20px;height:20px;border-radius:5px;border:1.5px solid var(--border2);background:var(--navy4);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;font-size:11px;flex-shrink:0}
+.item-chk input[type="checkbox"]:checked + label,.chk-item input[type="checkbox"]:checked + label{background:var(--green);border-color:var(--green)}
+.item-chk input[type="checkbox"]:checked + label::after,.chk-item input[type="checkbox"]:checked + label::after{content:"✓";color:#fff}
+.item-chk label::after,.chk-item label::after{content:""}
 .marg-inp{width:46px;background:var(--navy3);border:1px solid var(--border2);border-radius:5px;color:var(--text);font-family:var(--mono);font-size:11px;padding:3px 5px;text-align:right;outline:none;transition:border-color .15s}
 .marg-inp:focus{border-color:var(--green)}
 .marg-inp::-webkit-outer-spin-button,
@@ -249,7 +249,7 @@ table.items td{padding:5px 4px;vertical-align:middle}
           <th style="width:90px">Custo Unit.</th>
           <th style="width:120px;text-align:center" title="Imp / Margem / Desconto">Imp · Marg · Desc</th>
           <th style="width:88px">Custo Total</th>
-          <th style="width:88px">C/ Margem</th>
+          <th style="width:88px" title="Preço de tabela: custo + margem + imposto, antes do desconto">Preço Tabela</th>
           <th style="width:80px">Desconto</th>
           <th style="width:88px">C/ Imposto</th>
           <th style="width:76px">Lucro</th>
@@ -265,7 +265,7 @@ table.items td{padding:5px 4px;vertical-align:middle}
             <td></td>
             <td></td>
             <td><div class="tf-lbl">Custo Total</div><div class="tf-val" id="tf-ct">—</div></td>
-            <td><div class="tf-lbl">C/ Margem</div><div class="tf-val" id="tf-cm">—</div></td>
+            <td><div class="tf-lbl">Preço Tabela</div><div class="tf-val" id="tf-cm">—</div></td>
             <td><div class="tf-lbl">Desconto</div><div class="tf-val p" id="tf-desc">—</div></td>
             <td><div class="tf-lbl">C/ Imposto</div><div class="tf-val imp" id="tf-ci">—</div></td>
             <td><div class="tf-lbl">Lucro</div><div class="tf-val luc" id="tf-lc">—</div></td>
@@ -386,6 +386,20 @@ function toggleDesc(id) {
   calcular();
 }
 
+function toggleImp(id) {
+  const chk = document.getElementById("imp-"    + id);
+  const inp = document.getElementById("impval-" + id);
+  if (!chk || !inp) return;
+  if (chk.checked) {
+    inp.style.display = "none";
+    inp.value = "";
+  } else {
+    inp.style.display = "inline-block";
+    setTimeout(() => inp.focus(), 50);
+  }
+  calcular();
+}
+
 function toggleMarg(id) {
   const chk = document.getElementById("marg-" + id);
   const inp = document.getElementById("margval-" + id);
@@ -394,7 +408,7 @@ function toggleMarg(id) {
     inp.style.display = "none";
     inp.value = "";
   } else {
-    inp.style.display = "block";
+    inp.style.display = "inline-block";
     setTimeout(() => inp.focus(), 50);
   }
   calcular();
@@ -403,22 +417,28 @@ function toggleMarg(id) {
 function clamp99(v) { return Math.min(Math.max(parseFloat(v) || 0, 0), 99); }
 
 function calcItem(custo, qtd, pMarg, pImp, descPct, descFix) {
-  // Ordem: custo → margem → desconto → imposto (por dentro)
-  // Todos os % travados em 0-99
+  // Ordem real Infoxtec (validada contra planilha oficial):
+  //   1. custoTotal
+  //   2. margemRS = custoTotal × marg%           (markup simples sobre custo)
+  //   3. precoTabela = (custoTotal + margemRS) / (1 - imp%)   (imposto por dentro)
+  //   4. desconto = % ou R$ sobre o precoTabela (preço cheio, o que o cliente vê)
+  //   5. precoFinal = precoTabela - desconto
+  //   6. impostoFinal = precoFinal × imp%        (proporcional ao que sobrou)
+  //   7. lucro = precoFinal - impostoFinal - custoTotal   (desconto sai 100% da margem)
   pMarg   = clamp99(pMarg);
   pImp    = clamp99(pImp);
   descPct = clamp99(descPct);
-  const custoTotal = custo * qtd;
-  const mFrac      = pMarg / 100;
-  const comMargem  = custoTotal / (1 - mFrac);          // margem sobre venda
-  // Desconto: % ou R$ fixo (R$ limitado ao valor c/margem)
+  const custoTotal     = custo * qtd;
+  const margemRS        = custoTotal * (pMarg / 100);
+  const baseAntesImposto = custoTotal + margemRS;
+  const precoTabela      = pImp > 0 ? baseAntesImposto / (1 - pImp / 100) : baseAntesImposto;
   let descVal = 0;
-  if (descFix > 0)       descVal = Math.min(descFix, comMargem);
-  else if (descPct > 0)  descVal = comMargem * (descPct / 100);
-  const baseImp    = comMargem - descVal;
-  const total      = pImp > 0 ? baseImp / (1 - pImp / 100) : baseImp;
-  const comImposto = total - baseImp;
-  const lucro      = baseImp - custoTotal;  // baseImp já é (comMargem - descVal); não subtrair descVal de novo
+  if (descFix > 0)       descVal = Math.min(descFix, precoTabela);
+  else if (descPct > 0)  descVal = precoTabela * (descPct / 100);
+  const total      = precoTabela - descVal;     // preço final cobrado do cliente
+  const comImposto = total * (pImp / 100);       // imposto recalculado sobre o preço final
+  const comMargem  = baseAntesImposto;           // mantido para exibição (custo + margem, sem imposto)
+  const lucro      = total - comImposto - custoTotal;  // desconto já consumiu a margem
   return { custoTotal, comMargem, descVal, comImposto, lucro, total };
 }
 
@@ -473,9 +493,11 @@ function addItem() {
     <td style="width:120px">
       <div class="chk-group">
         <div class="chk-item">
-          <input type="checkbox" id="imp-${id}" checked onchange="calcular()">
-          <label for="imp-${id}" title="Aplicar imposto neste item"></label>
+          <input type="checkbox" id="imp-${id}" checked onchange="toggleImp(${id})">
+          <label for="imp-${id}" title="Usar imposto global"></label>
           <span class="chk-lbl">Imp</span>
+          <input type="text" inputmode="decimal" class="marg-inp chk-inp" id="impval-${id}" placeholder="%"
+            style="display:none" oninput="var v=parseFloat(this.value.replace(',','.'))||0;if(v>99)this.value='99';calcular()" onfocus="this.select()">
         </div>
         <div class="chk-item">
           <input type="checkbox" id="marg-${id}" checked onchange="toggleMarg(${id})">
@@ -509,6 +531,11 @@ function addItem() {
       </button>
     </td>`;
   document.getElementById("items-body").appendChild(tr);
+  // Sincronizar estado visual: checkboxes marcados = usa global = campos fechados
+  toggleImp(id);
+  toggleMarg(id);
+  toggleDesc(id);
+  calcular();
 }
 
 function removeItem(id) {
@@ -536,7 +563,8 @@ function calcular() {
     const margVal = document.getElementById("margval-" + i);
     const descChk = document.getElementById("desc-chk-" + i);
     const descVal = document.getElementById("descval-" + i);
-    const useImp  = impChk?.checked  ? pImp  : 0;
+    const impVal  = document.getElementById("impval-" + i);
+    const useImp  = impChk?.checked ? pImp : (parseFloat(impVal?.value) || 0);
     const useMarg = margChk?.checked ? pMarg : (parseFloat(margVal?.value) || 0);
     // Desconto: global (%) ou próprio (% ou R$)
     let useDescPct = 0, useDescFix = 0;
