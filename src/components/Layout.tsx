@@ -7,7 +7,7 @@ const menu = [
   { label: 'Dashboard', path: '/', ativo: true },
   { label: 'Clientes', path: '/clientes', ativo: false },
   { label: 'Produtos', path: '/produtos', ativo: false },
-  { label: 'Orçamentos', path: '/orcamentos', ativo: false },
+  { label: 'Orcamentos', path: '/orcamentos', ativo: false },
 ]
 
 export default function Layout({ children }: { children: ReactNode }) {
@@ -24,19 +24,17 @@ export default function Layout({ children }: { children: ReactNode }) {
         <img src={logo} alt="Infoxtec" className="h-8 w-fit mb-8 rounded" />
 
         <nav className="flex flex-col gap-1 flex-1">
-          {menu.map((item) => (
-            
-              key={item.path}
-              href={item.path}
-              className={`px-3 py-2 rounded-md text-sm transition-colors ${
-                item.ativo
-                  ? 'bg-[var(--green-dim)] text-[var(--green)] font-medium'
-                  : 'text-[var(--text2)] hover:bg-[var(--navy3)] hover:text-[var(--text)]'
-              }`}
-            >
-              {item.label}
-            </a>
-          ))}
+          {menu.map((item) => {
+            const classeBase = "px-3 py-2 rounded-md text-sm transition-colors"
+            const classeAtivo = "bg-[var(--green-dim)] text-[var(--green)] font-medium"
+            const classeInativo = "text-[var(--text2)] hover:bg-[var(--navy3)] hover:text-[var(--text)]"
+            const classeFinal = classeBase + " " + (item.ativo ? classeAtivo : classeInativo)
+            return (
+              <a key={item.path} href={item.path} className={classeFinal}>
+                {item.label}
+              </a>
+            )
+          })}
         </nav>
 
         <div className="border-t border-[var(--border)] pt-4">
