@@ -27,34 +27,43 @@ export default function Login() {
 
   async function handleLogin(e: FormEvent) {
     e.preventDefault()
+    console.log('[LOGIN] submit disparado', { email })
     setErro('')
     setCarregando(true)
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password: senha,
-    })
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password: senha,
+      })
 
-    setCarregando(false)
+      console.log('[LOGIN] resposta supabase', { data, error })
 
-    if (error) {
-      setErro('Email ou senha inválidos')
-      return
+      setCarregando(false)
+
+      if (error) {
+        console.log('[LOGIN] erro retornado', error.message)
+        setErro('Email ou senha inválidos: ' + error.message)
+        return
+      }
+
+      console.log('[LOGIN] sucesso, sessão:', data.session)
+      console.log('[LOGIN] redirecionando agora...')
+      window.location.href = '/'
+    } catch (e) {
+      console.error('[LOGIN] EXCEPTION capturada', e)
+      setCarregando(false)
+      setErro('Erro inesperado: ' + String(e))
     }
-
-    window.location.href = '/'
   }
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-[var(--navy)]">
-      {/* Lado esquerdo — branding */}
       <div className="hidden md:flex flex-col justify-center px-16 w-1/2 border-r border-[var(--border)]">
         <img src={logo} alt="Infoxtec" className="h-10 w-fit mb-8 rounded" />
-
         <p className="text-[var(--text2)] text-lg mb-10">
           Orçamentos certos, sempre
         </p>
-
         <div className="flex flex-col gap-7">
           {beneficios.map((b) => (
             <div key={b.titulo}>
@@ -67,11 +76,9 @@ export default function Login() {
         </div>
       </div>
 
-      {/* Lado direito — formulário */}
       <div className="flex-1 flex items-center justify-center p-6">
         <div className="w-full max-w-sm">
           <img src={logo} alt="Infoxtec" className="h-9 w-fit mb-8 md:hidden rounded" />
-
           <h1 className="text-[var(--text)] text-2xl font-semibold mb-1">
             Bem-vindo de volta
           </h1>
@@ -112,9 +119,7 @@ export default function Login() {
               </button>
             </div>
 
-            {erro && (
-              <p className="text-[var(--red)] text-sm mb-3">{erro}</p>
-            )}
+            {erro && <p className="text-[var(--red)] text-sm mb-3">{erro}</p>}
 
             <button
               type="submit"
