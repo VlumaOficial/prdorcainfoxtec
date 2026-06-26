@@ -27,34 +27,22 @@ export default function Login() {
 
   async function handleLogin(e: FormEvent) {
     e.preventDefault()
-    console.log('[LOGIN] submit disparado', { email })
     setErro('')
     setCarregando(true)
 
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password: senha,
-      })
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password: senha,
+    })
 
-      console.log('[LOGIN] resposta supabase', { data, error })
+    setCarregando(false)
 
-      setCarregando(false)
-
-      if (error) {
-        console.log('[LOGIN] erro retornado', error.message)
-        setErro('Email ou senha inválidos: ' + error.message)
-        return
-      }
-
-      console.log('[LOGIN] sucesso, sessão:', data.session)
-      console.log('[LOGIN] redirecionando agora...')
-      window.location.href = '/'
-    } catch (e) {
-      console.error('[LOGIN] EXCEPTION capturada', e)
-      setCarregando(false)
-      setErro('Erro inesperado: ' + String(e))
+    if (error) {
+      setErro('Email ou senha inválidos')
+      return
     }
+
+    window.location.href = '/'
   }
 
   return (
