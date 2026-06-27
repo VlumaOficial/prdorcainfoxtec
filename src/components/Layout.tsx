@@ -9,7 +9,7 @@ const menu = [
   { label: 'Dashboard', path: '/' },
   { label: 'Clientes', path: '/clientes' },
   { label: 'Produtos', path: '/produtos' },
-  { label: 'Orcamentos', path: '/orcamentos' },
+  { label: 'Orcamentos', path: '/orcamentos/novo' },
 ]
 
 export default function Layout({ children }: { children: ReactNode }) {
