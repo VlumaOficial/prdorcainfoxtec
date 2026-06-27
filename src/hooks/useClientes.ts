@@ -13,18 +13,21 @@ export interface Cliente {
   created_at: string
 }
 
-export function useClientes() {
+export type FiltroStatus = 'ativos' | 'inativos' | 'todos'
+
+export function useClientes(filtro: FiltroStatus = 'ativos') {
   const [clientes, setClientes] = useState<Cliente[]>([])
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState('')
 
   const buscar = useCallback(async () => {
     setCarregando(true)
-    const { data, error } = await supabase
-      .from('clientes')
-      .select('*')
-      .eq('ativo', true)
-      .order('nome', { ascending: true })
+    let query = supabase.from('clientes').select('*').order('nome', { ascending: true })
+
+    if (filtro === 'ativos') query = query.eq('ativo', true)
+    if (filtro === 'inativos') query = query.eq('ativo', false)
+
+    const { data, error } = await query
 
     if (error) {
       setErro(error.message)
@@ -32,7 +35,7 @@ export function useClientes() {
       setClientes(data ?? [])
     }
     setCarregando(false)
-  }, [])
+  }, [filtro])
 
   useEffect(() => {
     buscar()
@@ -76,5 +79,15 @@ export function useClientes() {
     await buscar()
   }
 
-  return { clientes, carregando, erro, criar, atualizar, inativar, recarregar: buscar }
+  async function reativar(id: string) {
+    const { error } = await supabase
+      .from('clientes')
+      .update({ ativo: true })
+      .eq('id', id)
+
+    if (error) throw new Error(error.message)
+    await buscar()
+  }
+
+  return { clientes, carregando, erro, criar, atualizar, inativar, reativar, recarregar: buscar }
 }
