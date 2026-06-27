@@ -3,6 +3,7 @@ import { useAuth } from './hooks/useAuth'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Clientes from './pages/Clientes'
+import Produtos from './pages/Produtos'
 
 function RotaProtegida({ children }: { children: React.ReactNode }) {
   const { autenticado, carregando } = useAuth()
@@ -65,6 +66,14 @@ function App() {
           element={
             <RotaProtegida>
               <Clientes />
+            </RotaProtegida>
+          }
+        />
+        <Route
+          path="/produtos"
+          element={
+            <RotaProtegida>
+              <Produtos />
             </RotaProtegida>
           }
         />
