@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import type { FormEvent } from 'react'
 import type { Cliente } from '../hooks/useClientes'
+import { formatarCnpj, validarCnpj } from '../lib/cnpj'
 
 interface Props {
   cliente: Cliente | null
@@ -36,9 +37,19 @@ export default function ClienteModal({ cliente, onClose, onSave }: Props) {
     }
   }, [cliente])
 
+  function handleCnpjChange(valor: string) {
+    setCnpj(formatarCnpj(valor))
+  }
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     setErro('')
+
+    if (cnpj.trim() !== '' && !validarCnpj(cnpj)) {
+      setErro('CNPJ inválido. Verifique os números digitados.')
+      return
+    }
+
     setSalvando(true)
     try {
       await onSave({ nome, cnpj, endereco, responsavel, email, telefone })
@@ -74,7 +85,9 @@ export default function ClienteModal({ cliente, onClose, onSave }: Props) {
           <input
             type="text"
             value={cnpj}
-            onChange={(e) => setCnpj(e.target.value)}
+            onChange={(e) => handleCnpjChange(e.target.value)}
+            placeholder="00.000.000/0000-00"
+            maxLength={18}
             className="w-full bg-[var(--navy4)] border border-[var(--border2)] rounded-md px-3 py-2 mb-3 text-[var(--text)] outline-none focus:border-[var(--green)]"
           />
 
