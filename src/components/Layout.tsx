@@ -1,17 +1,19 @@
 import type { ReactNode } from 'react'
+import { useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
 import logo from '../assets/infoxtec-logo.jpeg'
 
 const menu = [
-  { label: 'Dashboard', path: '/', ativo: true },
-  { label: 'Clientes', path: '/clientes', ativo: false },
-  { label: 'Produtos', path: '/produtos', ativo: false },
-  { label: 'Orcamentos', path: '/orcamentos', ativo: false },
+  { label: 'Dashboard', path: '/' },
+  { label: 'Clientes', path: '/clientes' },
+  { label: 'Produtos', path: '/produtos' },
+  { label: 'Orcamentos', path: '/orcamentos' },
 ]
 
 export default function Layout({ children }: { children: ReactNode }) {
   const { session } = useAuth()
+  const location = useLocation()
 
   async function handleLogout() {
     await supabase.auth.signOut()
@@ -25,10 +27,11 @@ export default function Layout({ children }: { children: ReactNode }) {
 
         <nav className="flex flex-col gap-1 flex-1">
           {menu.map((item) => {
+            const ativo = location.pathname === item.path
             const classeBase = "px-3 py-2 rounded-md text-sm transition-colors"
             const classeAtivo = "bg-[var(--green-dim)] text-[var(--green)] font-medium"
             const classeInativo = "text-[var(--text2)] hover:bg-[var(--navy3)] hover:text-[var(--text)]"
-            const classeFinal = classeBase + " " + (item.ativo ? classeAtivo : classeInativo)
+            const classeFinal = classeBase + " " + (ativo ? classeAtivo : classeInativo)
             return (
               <a key={item.path} href={item.path} className={classeFinal}>
                 {item.label}

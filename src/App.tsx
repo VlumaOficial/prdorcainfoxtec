@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
+import Clientes from './pages/Clientes'
 
 function RotaProtegida({ children }: { children: React.ReactNode }) {
   const { autenticado, carregando } = useAuth()
@@ -56,6 +57,14 @@ function App() {
           element={
             <RotaProtegida>
               <Dashboard />
+            </RotaProtegida>
+          }
+        />
+        <Route
+          path="/clientes"
+          element={
+            <RotaProtegida>
+              <Clientes />
             </RotaProtegida>
           }
         />
