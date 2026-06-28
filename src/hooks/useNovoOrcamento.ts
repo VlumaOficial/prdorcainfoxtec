@@ -1,6 +1,14 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 
+export interface DadosCliente {
+  nome: string
+  cnpj: string
+  endereco: string
+  responsavel: string
+  emailTelefone: string
+}
+
 export interface CabecalhoOrcamento {
   numero: string
   dataEmissao: string
@@ -8,7 +16,6 @@ export interface CabecalhoOrcamento {
   titulo: string
   condicoesPagamento: string
   observacoesGerais: string
-  clienteId: string | null
   emailContato: string
   telefoneContato: string
 }
@@ -31,10 +38,18 @@ export function useNovoOrcamento() {
     titulo: '',
     condicoesPagamento: '',
     observacoesGerais: '',
-    clienteId: null,
     emailContato: '',
     telefoneContato: '',
   })
+
+  const [cliente, setCliente] = useState<DadosCliente>({
+    nome: '',
+    cnpj: '',
+    endereco: '',
+    responsavel: '',
+    emailTelefone: '',
+  })
+
   const [carregandoNumero, setCarregandoNumero] = useState(true)
 
   useEffect(() => {
@@ -72,5 +87,15 @@ export function useNovoOrcamento() {
     setCabecalho((prev) => ({ ...prev, [campo]: valor }))
   }
 
-  return { cabecalho, atualizarCampo, carregandoNumero }
+  function atualizarCliente(campo: string, valor: string) {
+    setCliente((prev) => ({ ...prev, [campo]: valor }))
+  }
+
+  return {
+    cabecalho,
+    atualizarCampo,
+    cliente,
+    atualizarCliente,
+    carregandoNumero,
+  }
 }
