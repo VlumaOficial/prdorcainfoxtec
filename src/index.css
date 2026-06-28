@@ -29,3 +29,15 @@ body {
   background: var(--navy);
   color: var(--text);
 }
+
+body {
+  font-family: "Inter", sans-serif;
+}
+
+.font-sora {
+  font-family: "Sora", sans-serif;
+}
+
+.font-mono {
+  font-family: "JetBrains Mono", monospace;
+}

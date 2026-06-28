@@ -18,21 +18,21 @@ export default function EmitCard({ emailContato, telefoneContato, onChangeEmail,
         borderRadius: '14px',
       }}
     >
-      <img src={logo} alt="Infoxtec" className="h-10 w-auto rounded hidden sm:block" />
+      <img src={logo} alt="Infoxtec" className="h-9 w-auto rounded hidden sm:block" />
       <div className="flex-1">
-        <div className="text-[var(--text)] font-bold text-base">
+        <div className="font-sora font-bold text-[13px] text-[var(--text)] mb-0.5">
           INFOXTEC TECNOLOGIA E SERVICOS LTDA
         </div>
-        <div className="text-[var(--text2)] text-sm">
+        <div className="text-[var(--text2)] text-xs">
           CNPJ: 04.309.223/0001-96
         </div>
-        <div className="text-[var(--text2)] text-sm mb-3">
+        <div className="text-[var(--text2)] text-xs mb-3">
           Rua Silveira Martins, no 27, Cabula - CEP 41150-000, Salvador/BA
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label className="block text-[var(--text3)] text-xs uppercase tracking-wide mb-1">
+        <div className="flex gap-3.5 flex-wrap">
+          <div className="flex flex-col gap-[3px]">
+            <label className="text-[10px] uppercase tracking-wide text-[var(--text3)]">
               Telefone / WhatsApp
             </label>
             <input
@@ -40,11 +40,12 @@ export default function EmitCard({ emailContato, telefoneContato, onChangeEmail,
               value={telefoneContato}
               onChange={(e) => onChangeTelefone(e.target.value)}
               placeholder="(71) 99999-9999"
-              className="w-full bg-[var(--navy4)] border border-[var(--border2)] rounded-md px-3 py-2 text-[var(--text)] outline-none focus:border-[var(--green)]"
+              style={{ background: 'var(--navy4)', border: '1px solid var(--border2)', borderRadius: '6px', width: '190px', fontSize: '12px' }}
+              className="px-2.5 py-1.5 text-[var(--text)] outline-none focus:border-[var(--green)]"
             />
           </div>
-          <div>
-            <label className="block text-[var(--text3)] text-xs uppercase tracking-wide mb-1">
+          <div className="flex flex-col gap-[3px]">
+            <label className="text-[10px] uppercase tracking-wide text-[var(--text3)]">
               E-mail
             </label>
             <input
@@ -52,7 +53,8 @@ export default function EmitCard({ emailContato, telefoneContato, onChangeEmail,
               value={emailContato}
               onChange={(e) => onChangeEmail(e.target.value)}
               placeholder="contato@infoxtec.com.br"
-              className="w-full bg-[var(--navy4)] border border-[var(--border2)] rounded-md px-3 py-2 text-[var(--text)] outline-none focus:border-[var(--green)]"
+              style={{ background: 'var(--navy4)', border: '1px solid var(--border2)', borderRadius: '6px', width: '190px', fontSize: '12px' }}
+              className="px-2.5 py-1.5 text-[var(--text)] outline-none focus:border-[var(--green)]"
             />
           </div>
         </div>

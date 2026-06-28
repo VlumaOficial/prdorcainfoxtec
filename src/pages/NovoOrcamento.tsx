@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import type { ReactNode } from 'react'
 import Layout from '../components/Layout'
 import EmitCard from '../components/EmitCard'
 import ClienteSection from '../components/ClienteSection'
@@ -9,6 +10,34 @@ const sectionStyle: CSSProperties = {
   border: '1px solid var(--border)',
   borderRadius: '14px',
   padding: '1.25rem 1.5rem',
+}
+
+const inputStyle: CSSProperties = {
+  background: 'var(--navy3)',
+  border: '1px solid var(--border2)',
+  borderRadius: '8px',
+  fontFamily: '"Inter", sans-serif',
+  fontSize: '13px',
+}
+
+function SectionHeader({ children, color }: { children: ReactNode; color: 'g' | 'b' }) {
+  const bg = color === 'g' ? 'var(--green-dim)' : 'var(--blue-dim)'
+  const fg = color === 'g' ? 'var(--green)' : 'var(--blue)'
+  return (
+    <div className="flex items-center gap-2 mb-4">
+      <div
+        className="w-[26px] h-[26px] rounded-[7px] flex items-center justify-center flex-shrink-0"
+        style={{ background: bg, color: fg }}
+      >
+        <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+        </svg>
+      </div>
+      <span className="font-sora font-semibold text-[13px] text-[var(--text)]">
+        {children}
+      </span>
+    </div>
+  )
 }
 
 export default function NovoOrcamento() {
@@ -35,50 +64,51 @@ export default function NovoOrcamento() {
           />
 
           <div style={sectionStyle}>
-            <h2 className="text-[var(--text)] text-sm font-semibold uppercase tracking-wide mb-4">
-              Identificacao do Orcamento
-            </h2>
+            <SectionHeader color="g">Identificacao do Orcamento</SectionHeader>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-              <div>
-                <label className="block text-[var(--text3)] text-xs uppercase tracking-wide mb-1">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-semibold uppercase tracking-wide text-[var(--text3)]">
                   Numero
                 </label>
                 <input
                   type="text"
                   value={carregandoNumero ? '...' : cabecalho.numero}
                   onChange={(e) => atualizarCampo('numero', e.target.value)}
-                  className="w-full bg-[var(--navy4)] border border-[var(--border2)] rounded-md px-3 py-2 text-[var(--text)] outline-none focus:border-[var(--green)]"
+                  style={inputStyle}
+                  className="px-[11px] py-2 text-[var(--text)] outline-none focus:border-[var(--green)] w-full"
                 />
               </div>
 
-              <div>
-                <label className="block text-[var(--text3)] text-xs uppercase tracking-wide mb-1">
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-semibold uppercase tracking-wide text-[var(--text3)]">
                   Data de emissao
                 </label>
                 <input
                   type="date"
                   value={cabecalho.dataEmissao}
                   onChange={(e) => atualizarCampo('dataEmissao', e.target.value)}
-                  className="w-full bg-[var(--navy4)] border border-[var(--border2)] rounded-md px-3 py-2 text-[var(--text)] outline-none focus:border-[var(--green)]"
+                  style={inputStyle}
+                  className="px-[11px] py-2 text-[var(--text)] outline-none focus:border-[var(--green)] w-full"
                 />
               </div>
 
-              <div>
-                <label className="block text-[var(--text3)] text-xs uppercase tracking-wide mb-1">
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-semibold uppercase tracking-wide text-[var(--text3)]">
                   Valido ate
                 </label>
                 <input
                   type="date"
                   value={cabecalho.validade}
                   onChange={(e) => atualizarCampo('validade', e.target.value)}
-                  className="w-full bg-[var(--navy4)] border border-[var(--border2)] rounded-md px-3 py-2 text-[var(--text)] outline-none focus:border-[var(--green)]"
+                  style={inputStyle}
+                  className="px-[11px] py-2 text-[var(--text)] outline-none focus:border-[var(--green)] w-full"
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-[var(--text3)] text-xs uppercase tracking-wide mb-1">
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-semibold uppercase tracking-wide text-[var(--text3)]">
                 Titulo / Objeto
               </label>
               <input
@@ -86,27 +116,24 @@ export default function NovoOrcamento() {
                 value={cabecalho.titulo}
                 onChange={(e) => atualizarCampo('titulo', e.target.value)}
                 placeholder="Ex: Instalacao de sistema de monitoramento"
-                className="w-full bg-[var(--navy4)] border border-[var(--border2)] rounded-md px-3 py-2 text-[var(--text)] outline-none focus:border-[var(--green)]"
+                style={inputStyle}
+                className="px-[11px] py-2 text-[var(--text)] outline-none focus:border-[var(--green)] w-full"
               />
             </div>
           </div>
 
           <div style={sectionStyle}>
-            <h2 className="text-[var(--text)] text-sm font-semibold uppercase tracking-wide mb-4">
-              Itens / Servicos
-            </h2>
+            <SectionHeader color="g">Itens / Servicos</SectionHeader>
             <p className="text-[var(--text3)] text-sm">
               Tabela de itens - em breve
             </p>
           </div>
 
           <div style={sectionStyle}>
-            <h2 className="text-[var(--text)] text-sm font-semibold uppercase tracking-wide mb-4">
-              Observacoes e Condicoes
-            </h2>
+            <SectionHeader color="g">Observacoes e Condicoes</SectionHeader>
 
-            <div className="mb-4">
-              <label className="block text-[var(--text3)] text-xs uppercase tracking-wide mb-1">
+            <div className="flex flex-col gap-1 mb-3">
+              <label className="text-[10px] font-semibold uppercase tracking-wide text-[var(--text3)]">
                 Condicoes de pagamento
               </label>
               <input
@@ -114,12 +141,13 @@ export default function NovoOrcamento() {
                 value={cabecalho.condicoesPagamento}
                 onChange={(e) => atualizarCampo('condicoesPagamento', e.target.value)}
                 placeholder="50 por cento na aprovacao, 50 por cento na entrega"
-                className="w-full bg-[var(--navy4)] border border-[var(--border2)] rounded-md px-3 py-2 text-[var(--text)] outline-none focus:border-[var(--green)]"
+                style={inputStyle}
+                className="px-[11px] py-2 text-[var(--text)] outline-none focus:border-[var(--green)] w-full"
               />
             </div>
 
-            <div>
-              <label className="block text-[var(--text3)] text-xs uppercase tracking-wide mb-1">
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-semibold uppercase tracking-wide text-[var(--text3)]">
                 Observacoes gerais
               </label>
               <textarea
@@ -127,7 +155,8 @@ export default function NovoOrcamento() {
                 onChange={(e) => atualizarCampo('observacoesGerais', e.target.value)}
                 rows={3}
                 placeholder="Prazo de execucao, garantia, informacoes adicionais"
-                className="w-full bg-[var(--navy4)] border border-[var(--border2)] rounded-md px-3 py-2 text-[var(--text)] outline-none focus:border-[var(--green)] resize-none"
+                style={{ ...inputStyle, resize: 'vertical', minHeight: '68px' }}
+                className="px-[11px] py-2 text-[var(--text)] outline-none focus:border-[var(--green)] w-full"
               />
             </div>
           </div>
@@ -135,7 +164,7 @@ export default function NovoOrcamento() {
 
         <div className="lg:sticky lg:top-6 self-start flex flex-col gap-5">
           <div style={sectionStyle}>
-            <h2 className="text-[var(--text3)] text-xs font-bold uppercase tracking-widest mb-3">
+            <h2 className="text-[var(--text3)] text-[10px] font-bold uppercase tracking-widest mb-3">
               Configuracoes
             </h2>
             <p className="text-[var(--text3)] text-sm">
@@ -144,7 +173,7 @@ export default function NovoOrcamento() {
           </div>
 
           <div style={sectionStyle}>
-            <h2 className="text-[var(--text3)] text-xs font-bold uppercase tracking-widest mb-3">
+            <h2 className="text-[var(--text3)] text-[10px] font-bold uppercase tracking-widest mb-3">
               Resumo
             </h2>
             <p className="text-[var(--text3)] text-sm">
