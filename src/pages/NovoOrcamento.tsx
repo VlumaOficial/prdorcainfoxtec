@@ -49,6 +49,8 @@ export default function NovoOrcamento() {
     clienteBusca,
     setClienteBusca,
     clienteAvulso,
+    clienteEditando,
+    editarClienteVinculado,
     selecionarClienteExistente,
     cadastrarClienteNovo,
     usarClienteAvulso,
@@ -76,6 +78,8 @@ export default function NovoOrcamento() {
             onChange={atualizarCliente}
             clienteVinculado={clienteVinculado}
             clienteAvulso={clienteAvulso}
+            clienteEditando={clienteEditando}
+            onEditar={editarClienteVinculado}
             clienteBusca={clienteBusca}
             onBuscar={setClienteBusca}
             onSelecionar={selecionarClienteExistente}

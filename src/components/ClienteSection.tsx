@@ -26,12 +26,14 @@ interface Props {
   onChange: (campo: string, valor: string) => void
   clienteVinculado: Cliente | null
   clienteAvulso: boolean
+  clienteEditando: boolean
   clienteBusca: string
   onBuscar: (texto: string) => void
   onSelecionar: (cliente: Cliente) => void
   onCadastrarNovo: (nome: string) => void
   onUsarAvulso: (nome: string) => void
   onDesvincular: () => void
+  onEditar: () => void
 }
 
 export default function ClienteSection({
@@ -43,14 +45,16 @@ export default function ClienteSection({
   onChange,
   clienteVinculado,
   clienteAvulso,
+  clienteEditando,
   clienteBusca,
   onBuscar,
   onSelecionar,
   onCadastrarNovo,
   onUsarAvulso,
   onDesvincular,
+  onEditar,
 }: Props) {
-  const bloqueado = !!clienteVinculado
+  const bloqueado = !!clienteVinculado && !clienteEditando
 
   return (
     <div style={sectionStyle}>
@@ -71,6 +75,11 @@ export default function ClienteSection({
             Avulso - nao cadastrado
           </span>
         )}
+        {clienteEditando && (
+          <span className="text-[10px] text-[var(--green)] bg-[var(--green-dim)] px-2 py-0.5 rounded-full ml-auto">
+            Editando cadastro
+          </span>
+        )}
       </div>
 
       <div className="mb-3">
@@ -80,11 +89,13 @@ export default function ClienteSection({
         <ClienteCombobox
           valorBusca={clienteVinculado ? clienteVinculado.nome : clienteBusca}
           clienteVinculado={clienteVinculado}
+          editando={clienteEditando}
           onBuscar={onBuscar}
           onSelecionar={onSelecionar}
           onCadastrarNovo={onCadastrarNovo}
           onUsarAvulso={onUsarAvulso}
           onDesvincular={onDesvincular}
+          onEditar={onEditar}
         />
       </div>
 

@@ -54,6 +54,7 @@ export function useNovoOrcamento() {
   const [clienteVinculado, setClienteVinculado] = useState<Cliente | null>(null)
   const [clienteBusca, setClienteBusca] = useState('')
   const [clienteAvulso, setClienteAvulso] = useState(false)
+  const [clienteEditando, setClienteEditando] = useState(false)
 
   const [carregandoNumero, setCarregandoNumero] = useState(true)
 
@@ -96,8 +97,13 @@ export function useNovoOrcamento() {
     setCliente((prev) => ({ ...prev, [campo]: valor }))
   }
 
+  function editarClienteVinculado() {
+    setClienteEditando(true)
+  }
+
   function selecionarClienteExistente(c: Cliente) {
     setClienteVinculado(c)
+    setClienteEditando(false)
     setClienteAvulso(false)
     setClienteBusca(c.nome)
     setCliente({
@@ -122,6 +128,7 @@ export function useNovoOrcamento() {
   }
 
   function desvincularCliente() {
+    setClienteEditando(false)
     setClienteVinculado(null)
     setClienteAvulso(false)
     setClienteBusca('')
@@ -137,6 +144,8 @@ export function useNovoOrcamento() {
     clienteBusca,
     setClienteBusca,
     clienteAvulso,
+    clienteEditando,
+    editarClienteVinculado,
     selecionarClienteExistente,
     cadastrarClienteNovo,
     usarClienteAvulso,

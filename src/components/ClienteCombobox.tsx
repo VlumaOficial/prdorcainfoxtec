@@ -5,11 +5,13 @@ import type { Cliente } from '../hooks/useClientes'
 interface Props {
   valorBusca: string
   clienteVinculado: Cliente | null
+  editando: boolean
   onBuscar: (texto: string) => void
   onSelecionar: (cliente: Cliente) => void
   onCadastrarNovo: (nome: string) => void
   onUsarAvulso: (nome: string) => void
   onDesvincular: () => void
+  onEditar: () => void
 }
 
 const inputStyle = {
@@ -23,11 +25,13 @@ const inputStyle = {
 export default function ClienteCombobox({
   valorBusca,
   clienteVinculado,
+  editando,
   onBuscar,
   onSelecionar,
   onCadastrarNovo,
   onUsarAvulso,
   onDesvincular,
+  onEditar,
 }: Props) {
   const { clientes } = useClientes('ativos')
   const [aberto, setAberto] = useState(false)
@@ -49,15 +53,47 @@ export default function ClienteCombobox({
     return () => document.removeEventListener('mousedown', fecharAoClicarFora)
   }, [])
 
-  if (clienteVinculado) {
+  function handleTrocar() {
+    if (confirm('Deseja trocar o cliente selecionado? Os dados preenchidos serao limpos.')) {
+      onDesvincular()
+    }
+  }
+
+  if (clienteVinculado && !editando) {
     return (
       <div className="flex items-center justify-between gap-2" style={{ ...inputStyle }}>
         <span className="px-[11px] py-2 text-[var(--text)] truncate">
           {clienteVinculado.nome}
         </span>
+        <div className="flex gap-1 pr-2">
+          <button
+            type="button"
+            onClick={onEditar}
+            className="text-[var(--green)] text-xs px-2 py-1 hover:underline whitespace-nowrap"
+          >
+            Editar
+          </button>
+          <button
+            type="button"
+            onClick={handleTrocar}
+            className="text-[var(--blue)] text-xs px-2 py-1 hover:underline whitespace-nowrap"
+          >
+            Trocar
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  if (clienteVinculado && editando) {
+    return (
+      <div className="flex items-center justify-between gap-2" style={{ ...inputStyle, borderColor: 'var(--green)' }}>
+        <span className="px-[11px] py-2 text-[var(--text)] truncate">
+          Editando: {clienteVinculado.nome}
+        </span>
         <button
           type="button"
-          onClick={onDesvincular}
+          onClick={handleTrocar}
           className="text-[var(--blue)] text-xs px-3 hover:underline whitespace-nowrap"
         >
           Trocar
