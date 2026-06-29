@@ -1,4 +1,5 @@
 import type { ItemOrcamento } from '../hooks/useItensOrcamento'
+import { parseBR } from '../lib/numeros'
 import type { Produto } from '../hooks/useProdutos'
 import type { CSSProperties } from 'react'
 import ProdutoCombobox from './ProdutoCombobox'
@@ -150,7 +151,7 @@ export default function ItensTable({
                         inputMode="decimal"
                         value={item.custoUnit ? fmt(item.custoUnit) : ''}
                         onChange={(e) => {
-                          const v = parseFloat(e.target.value.replace(/\./g, '').replace(',', '.')) || 0
+                          const v = parseBR(e.target.value)
                           onAtualizar(item.id, 'custoUnit', v)
                         }}
                         placeholder="0,00"

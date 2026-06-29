@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import type { FormEvent } from 'react'
 import type { Produto } from '../hooks/useProdutos'
+import { parseBR } from '../lib/numeros'
 
 interface Props {
   produto: Produto | null
@@ -12,10 +13,6 @@ function formatarMoeda(valor: number) {
   return valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
-function parseMoeda(valor: string) {
-  const limpo = valor.replace(/[^\d,]/g, '').replace(',', '.')
-  return parseFloat(limpo) || 0
-}
 
 export default function ProdutoModal({ produto, onClose, onSave }: Props) {
   const [nome, setNome] = useState('')
@@ -36,7 +33,7 @@ export default function ProdutoModal({ produto, onClose, onSave }: Props) {
     e.preventDefault()
     setErro('')
 
-    const custo_padrao = parseMoeda(custoTexto)
+    const custo_padrao = parseBR(custoTexto)
 
     if (custo_padrao <= 0) {
       setErro('Informe um custo padrão maior que zero.')
