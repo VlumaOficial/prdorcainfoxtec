@@ -66,6 +66,12 @@ function CustoInput({ valor, onChange }: { valor: number; onChange: (v: number) 
       inputMode="decimal"
       value={texto}
       onChange={(e) => setTexto(e.target.value)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault()
+          ;(e.target as HTMLInputElement).blur()
+        }
+      }}
       onFocus={(e) => {
         setFocado(true)
         const v = parseBR(texto)
