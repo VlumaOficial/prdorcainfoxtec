@@ -2,6 +2,8 @@ import type { CSSProperties, ReactNode } from 'react'
 import Layout from '../components/Layout'
 import EmitCard from '../components/EmitCard'
 import ClienteSection from '../components/ClienteSection'
+import ItensTable from '../components/ItensTable'
+import { useItensOrcamento } from '../hooks/useItensOrcamento'
 import { useNovoOrcamento } from '../hooks/useNovoOrcamento'
 
 const sectionStyle: CSSProperties = {
@@ -57,6 +59,7 @@ export default function NovoOrcamento() {
     desvincularCliente,
     carregandoNumero,
   } = useNovoOrcamento()
+  const itensState = useItensOrcamento()
 
   return (
     <Layout>
@@ -149,9 +152,19 @@ export default function NovoOrcamento() {
 
           <div style={sectionStyle}>
             <SectionHeader color="g">Itens / Servicos</SectionHeader>
-            <p className="text-[var(--text3)] text-sm">
-              Tabela de itens - em breve
-            </p>
+            <ItensTable
+              itens={itensState.itens}
+              buscaPorItem={itensState.buscaPorItem}
+              onAdicionar={itensState.adicionarItem}
+              onRemover={itensState.removerItem}
+              onAtualizar={itensState.atualizarItem}
+              onBuscarItem={itensState.buscarItem}
+              onSelecionarProduto={itensState.selecionarProduto}
+              onCadastrarNovo={itensState.cadastrarProdutoNovo}
+              onUsarAvulso={itensState.usarProdutoAvulso}
+              onEditar={itensState.editarProdutoVinculado}
+              onDesvincular={itensState.desvincularProduto}
+            />
           </div>
 
           <div style={sectionStyle}>
