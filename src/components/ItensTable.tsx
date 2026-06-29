@@ -65,21 +65,21 @@ export default function ItensTable({
   return (
     <div>
       <div className="overflow-x-auto">
-        <table className="w-full text-sm min-w-[800px]">
+        <table className="w-full text-sm min-w-[1098px]">
           <thead>
             <tr className="border-b text-left" style={{ borderColor: 'var(--border)' }}>
-              <th style={{ width: '24px' }} className="text-[var(--text3)] text-[10px] uppercase tracking-wide py-2">#</th>
-              <th style={{ minWidth: '140px', width: '30%' }} className="text-[var(--text3)] text-[10px] uppercase tracking-wide py-2 px-2">Descricao</th>
-              <th style={{ width: '76px' }} className="text-[var(--text3)] text-[10px] uppercase tracking-wide py-2 px-2 text-center">Qtd</th>
-              <th style={{ width: '84px' }} className="text-[var(--text3)] text-[10px] uppercase tracking-wide py-2 px-2">Custo Unit.</th>
-              <th style={{ width: '96px' }} className="text-[var(--text3)] text-[10px] uppercase tracking-wide py-2 px-2 text-center">Imp - Marg - Desc</th>
-              <th style={{ width: '76px' }} className="text-[var(--text3)] text-[10px] uppercase tracking-wide py-2 px-2">Custo Total</th>
-              <th style={{ width: '80px' }} className="text-[var(--text3)] text-[10px] uppercase tracking-wide py-2 px-2">Preco Tabela</th>
-              <th style={{ width: '68px' }} className="text-[var(--text3)] text-[10px] uppercase tracking-wide py-2 px-2">Desconto</th>
-              <th style={{ width: '76px' }} className="text-[var(--text3)] text-[10px] uppercase tracking-wide py-2 px-2">C/ Imposto</th>
-              <th style={{ width: '68px' }} className="text-[var(--text3)] text-[10px] uppercase tracking-wide py-2 px-2">Lucro</th>
-              <th style={{ width: '84px' }} className="text-[var(--text3)] text-[10px] uppercase tracking-wide py-2 px-2">Total</th>
-              <th style={{ width: '24px' }}></th>
+              <th style={{ width: '28px' }} className="text-[var(--text3)] text-[10px] uppercase tracking-wide py-2">#</th>
+              <th style={{ minWidth: '150px', width: '30%' }} className="text-[var(--text3)] text-[10px] uppercase tracking-wide py-2 px-2">Descricao</th>
+              <th style={{ width: '72px' }} className="text-[var(--text3)] text-[10px] uppercase tracking-wide py-2 px-2 text-center">Qtd</th>
+              <th style={{ width: '90px' }} className="text-[var(--text3)] text-[10px] uppercase tracking-wide py-2 px-2">Custo Unit.</th>
+              <th style={{ width: '120px' }} className="text-[var(--text3)] text-[10px] uppercase tracking-wide py-2 px-2 text-center">Imp - Marg - Desc</th>
+              <th style={{ width: '88px' }} className="text-[var(--text3)] text-[10px] uppercase tracking-wide py-2 px-2">Custo Total</th>
+              <th style={{ width: '88px' }} className="text-[var(--text3)] text-[10px] uppercase tracking-wide py-2 px-2">Preco Tabela</th>
+              <th style={{ width: '80px' }} className="text-[var(--text3)] text-[10px] uppercase tracking-wide py-2 px-2">Desconto</th>
+              <th style={{ width: '88px' }} className="text-[var(--text3)] text-[10px] uppercase tracking-wide py-2 px-2">C/ Imposto</th>
+              <th style={{ width: '76px' }} className="text-[var(--text3)] text-[10px] uppercase tracking-wide py-2 px-2">Lucro</th>
+              <th style={{ width: '90px' }} className="text-[var(--text3)] text-[10px] uppercase tracking-wide py-2 px-2">Total</th>
+              <th style={{ width: '28px' }}></th>
             </tr>
           </thead>
           <tbody>
