@@ -1,5 +1,6 @@
 import type { ItemOrcamento } from '../hooks/useItensOrcamento'
-import { parseBR } from '../lib/numeros'
+import { useState } from 'react'
+import { parseBR, fmtBR, clamp99 } from '../lib/numeros'
 import type { Produto } from '../hooks/useProdutos'
 import type { CSSProperties } from 'react'
 import ProdutoCombobox from './ProdutoCombobox'
@@ -16,10 +17,6 @@ interface Props {
   onDesvincular: (id: string) => void
   buscaPorItem: Record<string, string>
   onBuscarItem: (id: string, texto: string) => void
-}
-
-function fmt(v: number) {
-  return v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
 const chkBoxStyle: CSSProperties = {
@@ -47,6 +44,45 @@ function ChkToggle({ marcado, onToggle, titulo }: { marcado: boolean; onToggle: 
     >
       {marcado && <span style={{ color: '#fff' }}>✓</span>}
     </div>
+  )
+}
+
+
+function CustoInput({ valor, onChange }: { valor: number; onChange: (v: number) => void }) {
+  const [texto, setTexto] = useState(valor > 0 ? fmtBR(valor) : '')
+  const [focado, setFocado] = useState(false)
+
+  // Se o valor externo mudar e nao estamos focados, atualiza o texto exibido
+  if (!focado) {
+    const textoEsperado = valor > 0 ? fmtBR(valor) : ''
+    if (texto !== textoEsperado) {
+      setTexto(textoEsperado)
+    }
+  }
+
+  return (
+    <input
+      type="text"
+      inputMode="decimal"
+      value={texto}
+      onChange={(e) => setTexto(e.target.value)}
+      onFocus={(e) => {
+        setFocado(true)
+        const v = parseBR(texto)
+        const editavel = v > 0 ? v.toString().replace('.', ',') : ''
+        setTexto(editavel)
+        setTimeout(() => e.target.select(), 0)
+      }}
+      onBlur={() => {
+        setFocado(false)
+        const v = parseBR(texto)
+        onChange(v)
+        setTexto(v > 0 ? fmtBR(v) : '')
+      }}
+      placeholder="0,00"
+      style={{ background: 'var(--navy3)', border: '1px solid transparent', borderRadius: '6px', fontSize: '12px', fontFamily: 'var(--mono)', textAlign: 'right', paddingLeft: '26px' }}
+      className="py-1.5 pr-2 text-[var(--text)] outline-none focus:border-[var(--green)] w-full"
+    />
   )
 }
 
@@ -86,14 +122,15 @@ export default function ItensTable({
           <tbody>
             {itens.map((item, idx) => {
               const custoTotal = item.qtd * item.custoUnit
-              const margPct = item.usaMargGlobal ? 0 : item.margPct
+              const margPct = clamp99(item.usaMargGlobal ? 0 : item.margPct)
               const margemRS = custoTotal * (margPct / 100)
               const baseAntesImposto = custoTotal + margemRS
-              const impPct = item.usaImpGlobal ? 0 : item.impPct
+              const impPct = clamp99(item.usaImpGlobal ? 0 : item.impPct)
               const precoTabela = impPct > 0 ? baseAntesImposto / (1 - impPct / 100) : baseAntesImposto
               let descVal = 0
               if (!item.usaDescGlobal) {
-                descVal = item.descFix > 0 ? Math.min(item.descFix, precoTabela) : precoTabela * (item.descPct / 100)
+                const descPctClamped = clamp99(item.descPct)
+                descVal = item.descFix > 0 ? Math.min(item.descFix, precoTabela) : precoTabela * (descPctClamped / 100)
               }
               const total = precoTabela - descVal
               const comImposto = total * (impPct / 100)
@@ -146,17 +183,9 @@ export default function ItensTable({
                   <td className="py-2 px-2">
                     <div className="relative">
                       <span className="absolute left-[7px] top-1/2 -translate-y-1/2 text-[11px] text-[var(--text3)] pointer-events-none" style={{ fontFamily: 'var(--mono)' }}>R$</span>
-                      <input
-                        type="text"
-                        inputMode="decimal"
-                        value={item.custoUnit ? fmt(item.custoUnit) : ''}
-                        onChange={(e) => {
-                          const v = parseBR(e.target.value)
-                          onAtualizar(item.id, 'custoUnit', v)
-                        }}
-                        placeholder="0,00"
-                        style={{ background: 'var(--navy3)', border: '1px solid transparent', borderRadius: '6px', fontSize: '12px', fontFamily: '"Inter", sans-serif', textAlign: 'right', paddingLeft: '26px' }}
-                        className="py-1.5 pr-2 text-[var(--text)] outline-none focus:border-[var(--green)] w-full"
+                      <CustoInput
+                        valor={item.custoUnit}
+                        onChange={(v) => onAtualizar(item.id, 'custoUnit', v)}
                       />
                     </div>
                   </td>
@@ -209,12 +238,12 @@ export default function ItensTable({
                       </div>
                     </div>
                   </td>
-                  <td className="py-2 px-2 text-right text-[var(--text2)] text-xs whitespace-nowrap" style={{ fontFamily: 'var(--mono)' }}>{custoTotal > 0 ? fmt(custoTotal) : '\u2014'}</td>
-                  <td className="py-2 px-2 text-right text-[var(--text2)] text-xs whitespace-nowrap" style={{ fontFamily: 'var(--mono)' }}>{custoTotal > 0 ? fmt(precoTabela) : '\u2014'}</td>
-                  <td className="py-2 px-2 text-right text-[var(--purple)] text-xs whitespace-nowrap" style={{ fontFamily: 'var(--mono)' }}>{custoTotal > 0 ? fmt(descVal) : '\u2014'}</td>
-                  <td className="py-2 px-2 text-right text-[var(--red)] text-xs whitespace-nowrap" style={{ fontFamily: 'var(--mono)' }}>{custoTotal > 0 ? fmt(comImposto) : '\u2014'}</td>
-                  <td className="py-2 px-2 text-right text-[var(--amber)] text-xs whitespace-nowrap" style={{ fontFamily: 'var(--mono)' }}>{custoTotal > 0 ? (lucro < 0 ? '- ' + fmt(Math.abs(lucro)) : fmt(lucro)) : '\u2014'}</td>
-                  <td className="py-2 px-2 text-right text-[var(--green)] font-semibold text-[13px] whitespace-nowrap" style={{ fontFamily: 'var(--mono)' }}>{custoTotal > 0 ? fmt(total) : '\u2014'}</td>
+                  <td className="py-2 px-2 text-right text-[var(--text2)] text-xs whitespace-nowrap" style={{ fontFamily: 'var(--mono)' }}>{custoTotal > 0 ? fmtBR(custoTotal) : '\u2014'}</td>
+                  <td className="py-2 px-2 text-right text-[var(--text2)] text-xs whitespace-nowrap" style={{ fontFamily: 'var(--mono)' }}>{custoTotal > 0 ? fmtBR(precoTabela) : '\u2014'}</td>
+                  <td className="py-2 px-2 text-right text-[var(--purple)] text-xs whitespace-nowrap" style={{ fontFamily: 'var(--mono)' }}>{custoTotal > 0 ? fmtBR(descVal) : '\u2014'}</td>
+                  <td className="py-2 px-2 text-right text-[var(--red)] text-xs whitespace-nowrap" style={{ fontFamily: 'var(--mono)' }}>{custoTotal > 0 ? fmtBR(comImposto) : '\u2014'}</td>
+                  <td className="py-2 px-2 text-right text-[var(--amber)] text-xs whitespace-nowrap" style={{ fontFamily: 'var(--mono)' }}>{custoTotal > 0 ? (lucro < 0 ? '- ' + fmtBR(Math.abs(lucro)) : fmtBR(lucro)) : '\u2014'}</td>
+                  <td className="py-2 px-2 text-right text-[var(--green)] font-semibold text-[13px] whitespace-nowrap" style={{ fontFamily: 'var(--mono)' }}>{custoTotal > 0 ? fmtBR(total) : '\u2014'}</td>
                   <td className="py-2">
                     <button
                       type="button"

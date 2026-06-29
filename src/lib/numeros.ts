@@ -1,32 +1,34 @@
 /**
- * Faz parse de um numero em string aceitando formato BR ou US.
- * Exemplos:
- *   "1,50"       -> 1.5
- *   "1.50"       -> 1.5
- *   "1.234,50"   -> 1234.5
- *   "1234.50"    -> 1234.5
- *   "1.234"      -> 1234   (sem vírgula, ponto interpretado como milhar)
- *   ""           -> 0
+ * parseBR - identico ao HTML original (infoxtec-orcamento.html linhas 354-361)
+ * Aceita tanto formato BR (1.500,00) quanto numero simples (1500.00)
+ * Regra: se tem virgula, e BR; senao, parseFloat direto.
  */
-export function parseBR(valor: string): number {
-  if (!valor) return 0
-  const s = valor.trim()
-  if (!s) return 0
-
-  const temVirgula = s.includes(',')
-
-  if (temVirgula) {
-    // Formato BR: pontos sao milhares, virgula e decimal
+export function parseBR(v: string | number | null | undefined): number {
+  if (v === '' || v === null || v === undefined) return 0
+  const s = v.toString().trim()
+  if (s.includes(',')) {
     return parseFloat(s.replace(/\./g, '').replace(',', '.')) || 0
   }
+  return parseFloat(s) || 0
+}
 
-  // Sem virgula: pode ser US (1.50) ou BR sem decimal (1.234)
-  const partes = s.split('.')
-  if (partes.length === 2 && partes[1].length <= 2) {
-    // Provavelmente decimal US: 1.5 ou 1.50
-    return parseFloat(s) || 0
-  }
+/**
+ * Formata numero como moeda BR: "1.500,00" (sem R$ na frente)
+ */
+export function fmtBR(v: number): string {
+  return Math.abs(v).toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
+}
 
-  // Tem multiplos pontos ou grupo de 3 digitos: separadores de milhar
-  return parseFloat(s.replace(/\./g, '')) || 0
+/**
+ * clamp99 - identico ao HTML original
+ * Limita um percentual entre 0 e 99
+ */
+export function clamp99(v: number): number {
+  if (!v || isNaN(v)) return 0
+  if (v < 0) return 0
+  if (v > 99) return 99
+  return v
 }
