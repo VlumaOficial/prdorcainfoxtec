@@ -16,3 +16,12 @@ Itens identificados mas adiados deliberadamente, com a fase em que devem ser ret
 
 ## Concluído
 (itens movidos para aqui conforme forem implementados)
+
+## Concluído
+
+### Regra de negócio unificada: Cliente e Produto
+Confirmado que Cliente segue a mesma regra que Produto no orçamento:
+- Busca via combobox no catálogo (clientes / produtos)
+- Se não encontrado: opção "Cadastrar como [cliente/produto]" ou "Usar só neste orçamento" (avulso)
+- Se já vinculado e dados mudarem: ao salvar, pergunta se atualiza o cadastro
+- Sem histórico de itens "rejeitados" - pergunta sempre de novo se o nome não bater
