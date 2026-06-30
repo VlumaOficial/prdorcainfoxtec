@@ -5,6 +5,7 @@ import ClienteSection from '../components/ClienteSection'
 import ItensTable from '../components/ItensTable'
 import { useItensOrcamento } from '../hooks/useItensOrcamento'
 import ConfiguracoesSidebar from '../components/ConfiguracoesSidebar'
+import ResumoSidebar from '../components/ResumoSidebar'
 import { useConfigGlobal } from '../hooks/useConfigGlobal'
 import { useNovoOrcamento } from '../hooks/useNovoOrcamento'
 
@@ -210,14 +211,10 @@ export default function NovoOrcamento() {
             onAtualizar={configState.atualizar}
           />
 
-          <div style={sectionStyle}>
-            <h2 className="text-[var(--text3)] text-[10px] font-bold uppercase tracking-widest mb-3">
-              Resumo
-            </h2>
-            <p className="text-[var(--text3)] text-sm">
-              Totais e resultado - em breve
-            </p>
-          </div>
+          <ResumoSidebar
+            itens={itensState.itens}
+            config={configState.config}
+          />
         </div>
       </div>
     </Layout>
