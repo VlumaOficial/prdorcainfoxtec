@@ -60,12 +60,16 @@ export default function Layout({ children }: { children: ReactNode }) {
     localStorage.setItem('sidebarColapsada', String(colapsada))
   }, [colapsada])
 
+  // Colapso so e permitido na tela de Orcamento
+  const emOrcamento = location.pathname.startsWith('/orcamentos')
+  const efetivamenteColapsada = colapsada && emOrcamento
+
   async function handleLogout() {
     await supabase.auth.signOut()
     window.location.href = '/login'
   }
 
-  const larguraSidebar = colapsada ? 'w-14' : 'w-60'
+  const larguraSidebar = efetivamenteColapsada ? 'w-14' : 'w-60'
 
   return (
     <div className="min-h-screen flex bg-[var(--navy)]">
@@ -80,29 +84,31 @@ export default function Layout({ children }: { children: ReactNode }) {
         className={
           "fixed md:static z-40 top-0 left-0 h-screen border-r border-[var(--border)] bg-[var(--navy)] flex flex-col transition-all " +
           larguraSidebar + " " +
-          (colapsada ? "p-2" : "p-5") + " " +
+          (efetivamenteColapsada ? "p-2" : "p-5") + " " +
           (menuAberto ? "translate-x-0" : "-translate-x-full md:translate-x-0")
         }
       >
-        <div className={"flex items-center mb-6 " + (colapsada ? "justify-center" : "justify-between")}>
-          {!colapsada && <img src={logo} alt="Infoxtec" className="h-8 w-fit rounded" />}
+        <div className={"flex items-center mb-6 " + (efetivamenteColapsada ? "justify-center" : "justify-between")}>
+          {!efetivamenteColapsada && <img src={logo} alt="Infoxtec" className="h-8 w-fit rounded" />}
+          {emOrcamento && (
           <button
             type="button"
             onClick={() => setColapsada(!colapsada)}
             className="hidden md:flex items-center justify-center w-8 h-8 rounded text-[var(--text2)] hover:bg-[var(--navy3)]"
-            title={colapsada ? 'Expandir menu' : 'Colapsar menu'}
+            title={efetivamenteColapsada ? 'Expandir menu' : 'Colapsar menu'}
           >
             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={colapsada ? "M13 5l7 7-7 7M5 5l7 7-7 7" : "M11 19l-7-7 7-7m8 14l-7-7 7-7"} />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={efetivamenteColapsada ? "M13 5l7 7-7 7M5 5l7 7-7 7" : "M11 19l-7-7 7-7m8 14l-7-7 7-7"} />
             </svg>
           </button>
+          )}
         </div>
 
         <nav className="flex flex-col gap-1 flex-1">
           {menu.map((item) => {
             const ativo = location.pathname === item.path || (item.path.startsWith('/orcamentos') && location.pathname.startsWith('/orcamentos'))
             const classeBase = "rounded-md text-sm transition-colors flex items-center "
-            const classePadding = colapsada ? "justify-center p-2" : "px-3 py-2 gap-2.5"
+            const classePadding = efetivamenteColapsada ? "justify-center p-2" : "px-3 py-2 gap-2.5"
             const classeAtivo = "bg-[var(--green-dim)] text-[var(--green)] font-medium"
             const classeInativo = "text-[var(--text2)] hover:bg-[var(--navy3)] hover:text-[var(--text)]"
             const classeFinal = classeBase + classePadding + " " + (ativo ? classeAtivo : classeInativo)
@@ -113,17 +119,17 @@ export default function Layout({ children }: { children: ReactNode }) {
                 href={item.path}
                 className={classeFinal}
                 onClick={() => setMenuAberto(false)}
-                title={colapsada ? item.label : undefined}
+                title={efetivamenteColapsada ? item.label : undefined}
               >
                 {item.icon}
-                {!colapsada && <span>{item.label}</span>}
+                {!efetivamenteColapsada && <span>{item.label}</span>}
               </a>
             )
           })}
         </nav>
 
-        <div className={"border-t border-[var(--border)] " + (colapsada ? "pt-2" : "pt-4")}>
-          {!colapsada && (
+        <div className={"border-t border-[var(--border)] " + (efetivamenteColapsada ? "pt-2" : "pt-4")}>
+          {!efetivamenteColapsada && (
             <p className="text-[var(--text3)] text-xs mb-2 truncate">
               {session?.user.email}
             </p>
@@ -132,11 +138,11 @@ export default function Layout({ children }: { children: ReactNode }) {
             onClick={handleLogout}
             className={
               "text-[var(--text2)] hover:text-[var(--red)] transition-colors flex items-center " +
-              (colapsada ? "justify-center w-full p-2" : "text-sm")
+              (efetivamenteColapsada ? "justify-center w-full p-2" : "text-sm")
             }
             title="Sair"
           >
-            {colapsada ? (
+            {efetivamenteColapsada ? (
               <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
