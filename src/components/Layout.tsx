@@ -49,19 +49,17 @@ export default function Layout({ children }: { children: ReactNode }) {
   const location = useLocation()
   const [menuAberto, setMenuAberto] = useState(false)
 
-  // Sidebar colapsada: por padrao colapsada em /orcamentos/*, salva preferencia em localStorage
-  const [colapsada, setColapsada] = useState<boolean>(() => {
-    const salvo = localStorage.getItem('sidebarColapsada')
-    if (salvo !== null) return salvo === 'true'
-    return location.pathname.startsWith('/orcamentos')
-  })
-
-  useEffect(() => {
-    localStorage.setItem('sidebarColapsada', String(colapsada))
-  }, [colapsada])
-
   // Colapso so e permitido na tela de Orcamento
   const emOrcamento = location.pathname.startsWith('/orcamentos')
+
+  // Estado de colapso. Ao entrar em Orcamento, colapsa automaticamente.
+  const [colapsada, setColapsada] = useState<boolean>(emOrcamento)
+
+  // Sempre que a rota mudar para Orcamento, colapsa; ao sair, expande.
+  useEffect(() => {
+    setColapsada(emOrcamento)
+  }, [emOrcamento])
+
   const efetivamenteColapsada = colapsada && emOrcamento
 
   async function handleLogout() {
