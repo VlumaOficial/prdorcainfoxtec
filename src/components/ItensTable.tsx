@@ -129,7 +129,7 @@ export default function ItensTable({
 }: Props) {
   return (
     <div>
-      <div style={{ overflowX: 'auto', borderRadius: '8px', border: '1px solid var(--border)' }}>
+      <div style={{ overflowX: 'auto', overflowY: 'visible', borderRadius: '8px', border: '1px solid var(--border)' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '900px', tableLayout: 'auto' }}>
           <thead>
             <tr style={{ background: 'var(--navy3)' }}>
