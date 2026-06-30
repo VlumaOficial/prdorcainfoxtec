@@ -4,6 +4,7 @@ import { parseBR, fmtBR, clamp99 } from '../lib/numeros'
 import type { Produto } from '../hooks/useProdutos'
 import type { CSSProperties } from 'react'
 import ProdutoCombobox from './ProdutoCombobox'
+import { calcularTotais } from '../lib/calculo'
 import type { ConfigGlobal } from '../hooks/useConfigGlobal'
 
 interface Props {
@@ -130,6 +131,7 @@ export default function ItensTable({
   buscaPorItem,
   onBuscarItem,
 }: Props) {
+  const totais = calcularTotais(itens, config)
   return (
     <div>
       <div style={{ overflowX: 'auto', overflowY: 'visible', borderRadius: '8px', border: '1px solid var(--border)' }}>
@@ -299,6 +301,22 @@ export default function ItensTable({
               )
             })}
           </tbody>
+          <tfoot>
+            <tr style={{ borderTop: '2px solid var(--border2)', background: 'var(--navy3)' }}>
+              <td style={{ ...td }}></td>
+              <td style={{ ...td, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--text3)', fontWeight: 600 }}>Totais</td>
+              <td style={{ ...td }}></td>
+              <td style={{ ...td }}></td>
+              <td style={{ ...td }}></td>
+              <td style={{ ...cv, fontWeight: 600, color: 'var(--text)' }}>{totais.tCusto > 0 ? fmtBR(totais.tCusto) : '\u2014'}</td>
+              <td style={{ ...cv, fontWeight: 600, color: 'var(--text)' }}>{totais.tCusto > 0 ? fmtBR(totais.tFinal + totais.tDesc) : '\u2014'}</td>
+              <td style={{ ...cv, fontWeight: 600, color: 'var(--purple)' }}>{totais.tDesc > 0.005 ? fmtBR(totais.tDesc) : '\u2014'}</td>
+              <td style={{ ...cv, fontWeight: 600, color: 'var(--red)' }}>{totais.tCusto > 0 ? fmtBR(totais.tImp) : '\u2014'}</td>
+              <td style={{ ...cv, fontWeight: 600, color: 'var(--amber)' }}>{totais.tCusto > 0 ? (totais.tLuc < 0 ? '- ' + fmtBR(Math.abs(totais.tLuc)) : fmtBR(totais.tLuc)) : '\u2014'}</td>
+              <td style={{ ...cv, fontWeight: 700, fontSize: '13px', color: 'var(--green)' }}>{totais.tCusto > 0 ? fmtBR(totais.tFinal) : '\u2014'}</td>
+              <td style={{ ...td }}></td>
+            </tr>
+          </tfoot>
         </table>
       </div>
 
