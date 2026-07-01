@@ -69,6 +69,7 @@ export default function NovoOrcamento() {
       cabecalho,
       cliente,
       clienteVinculado,
+      clienteAvulso,
       itens: itensState.itens,
       config: configState.config,
     })
