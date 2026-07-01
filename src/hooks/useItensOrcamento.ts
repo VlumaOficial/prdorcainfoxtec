@@ -123,9 +123,19 @@ export function useItensOrcamento() {
     )
   }
 
+  function carregar(novosItens: ItemOrcamento[]) {
+    setItens(novosItens.length > 0 ? novosItens : [itemVazio()])
+  }
+
+  function resetar() {
+    setItens([itemVazio()])
+  }
+
   return {
     itens,
     buscaPorItem,
+    carregar,
+    resetar,
     buscarItem,
     adicionarItem,
     removerItem,

@@ -31,7 +31,7 @@ function em30Dias(): string {
   return d.toISOString().slice(0, 10)
 }
 
-export function useNovoOrcamento() {
+export function useNovoOrcamento(modoEdicao = false) {
   const [cabecalho, setCabecalho] = useState<CabecalhoOrcamento>({
     numero: '',
     dataEmissao: hoje(),
@@ -83,8 +83,12 @@ export function useNovoOrcamento() {
       setCarregandoNumero(false)
     }
 
-    buscarNumeroSugerido()
-  }, [])
+    if (!modoEdicao) {
+      buscarNumeroSugerido()
+    } else {
+      setCarregandoNumero(false)
+    }
+  }, [modoEdicao])
 
   function atualizarCampo<K extends keyof CabecalhoOrcamento>(
     campo: K,
@@ -135,8 +139,23 @@ export function useNovoOrcamento() {
     setCliente({ nome: '', cnpj: '', endereco: '', responsavel: '', emailTelefone: '' })
   }
 
+  function carregar(
+    novoCabecalho: CabecalhoOrcamento,
+    novoCliente: DadosCliente,
+    novoVinculado: Cliente | null,
+    novoAvulso: boolean
+  ) {
+    setCabecalho(novoCabecalho)
+    setCliente(novoCliente)
+    setClienteVinculado(novoVinculado)
+    setClienteAvulso(novoAvulso)
+    setClienteBusca(novoVinculado ? novoVinculado.nome : novoCliente.nome)
+    setClienteEditando(false)
+  }
+
   return {
     cabecalho,
+    carregar,
     atualizarCampo,
     cliente,
     atualizarCliente,

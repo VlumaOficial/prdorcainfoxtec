@@ -21,5 +21,13 @@ export function useConfigGlobal() {
     setConfig((prev) => ({ ...prev, [campo]: valor }))
   }
 
-  return { config, atualizar }
+  function carregar(novaConfig: ConfigGlobal) {
+    setConfig(novaConfig)
+  }
+
+  function resetar() {
+    setConfig({ impPct: 0, margPct: 0, descPct: 0, impNoPdf: false, descNoPdf: false })
+  }
+
+  return { config, atualizar, carregar, resetar }
 }
