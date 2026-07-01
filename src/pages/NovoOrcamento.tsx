@@ -76,6 +76,7 @@ export default function NovoOrcamento() {
     })
     if (id) {
       setSalvoOk(true)
+      setTimeout(() => setSalvoOk(false), 3000)
     }
   }
 
@@ -258,7 +259,7 @@ export default function NovoOrcamento() {
         )}
         {salvoOk && !erro && (
           <span style={{ color: 'var(--green)', fontSize: '13px', fontWeight: 600 }}>
-            \u2713 Orcamento salvo com sucesso
+            ✓ Orcamento salvo com sucesso
           </span>
         )}
         <button
