@@ -34,3 +34,8 @@ Confirmado que Cliente segue a mesma regra que Produto no orçamento:
 - **Melhorias a fazer:**
   - Remover o `alert()` temporário de sucesso (feio, bloqueia tela) — substituir por toast discreto ou selo de estado
   - Após salvar, manter formulário preenchido (usuário pode querer gerar PDF) e trocar botão "Salvar" por estado "✓ Salvo" + botões "Criar Novo" (limpa e gera novo número) e "Gerar PDF" (quando o PDF existir)
+
+### Endereco do cliente na tela de Clientes
+- **Quando retomar:** refinamento futuro da tela de Clientes
+- **Situacao:** o endereco cadastrado nao aparece na listagem de Clientes, so ao abrir a edicao
+- **Baixa prioridade:** nao bloqueia o fluxo de orcamento

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import Layout from '../components/Layout'
 import EmitCard from '../components/EmitCard'
@@ -74,14 +75,14 @@ export default function NovoOrcamento() {
       config: configState.config,
     })
     if (id) {
-      alert('Orcamento salvo com sucesso! ID: ' + id)
-      // TODO 5.7: navigate('/orcamentos')
+      setSalvoOk(true)
     }
   }
 
   const itensState = useItensOrcamento()
   const configState = useConfigGlobal()
   const { salvar, salvando, erro } = useSalvarOrcamento()
+  const [salvoOk, setSalvoOk] = useState(false)
 
   return (
     <Layout>
@@ -254,6 +255,11 @@ export default function NovoOrcamento() {
       >
         {erro && (
           <span style={{ color: 'var(--red)', fontSize: '13px' }}>{erro}</span>
+        )}
+        {salvoOk && !erro && (
+          <span style={{ color: 'var(--green)', fontSize: '13px', fontWeight: 600 }}>
+            \u2713 Orcamento salvo com sucesso
+          </span>
         )}
         <button
           type="button"
