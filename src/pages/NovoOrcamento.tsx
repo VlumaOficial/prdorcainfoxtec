@@ -8,6 +8,7 @@ import ConfiguracoesSidebar from '../components/ConfiguracoesSidebar'
 import ResumoSidebar from '../components/ResumoSidebar'
 import { useConfigGlobal } from '../hooks/useConfigGlobal'
 import { useNovoOrcamento } from '../hooks/useNovoOrcamento'
+import { useSalvarOrcamento } from '../hooks/useSalvarOrcamento'
 
 const sectionStyle: CSSProperties = {
   background: 'var(--navy2)',
@@ -62,8 +63,24 @@ export default function NovoOrcamento() {
     desvincularCliente,
     carregandoNumero,
   } = useNovoOrcamento()
+
+  async function handleSalvar() {
+    const id = await salvar({
+      cabecalho,
+      cliente,
+      clienteVinculado,
+      itens: itensState.itens,
+      config: configState.config,
+    })
+    if (id) {
+      alert('Orcamento salvo com sucesso! ID: ' + id)
+      // TODO 5.7: navigate('/orcamentos')
+    }
+  }
+
   const itensState = useItensOrcamento()
   const configState = useConfigGlobal()
+  const { salvar, salvando, erro } = useSalvarOrcamento()
 
   return (
     <Layout>
@@ -216,6 +233,45 @@ export default function NovoOrcamento() {
             config={configState.config}
           />
         </div>
+      </div>
+
+      {/* Barra de acoes */}
+      <div
+        style={{
+          position: 'sticky',
+          bottom: 0,
+          marginTop: '24px',
+          padding: '16px 0',
+          background: 'var(--navy)',
+          borderTop: '1px solid var(--border)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'flex-end',
+          gap: '16px',
+          zIndex: 10,
+        }}
+      >
+        {erro && (
+          <span style={{ color: 'var(--red)', fontSize: '13px' }}>{erro}</span>
+        )}
+        <button
+          type="button"
+          onClick={handleSalvar}
+          disabled={salvando}
+          style={{
+            background: 'var(--green)',
+            color: '#fff',
+            fontWeight: 600,
+            fontSize: '14px',
+            padding: '10px 24px',
+            borderRadius: '8px',
+            cursor: salvando ? 'not-allowed' : 'pointer',
+            opacity: salvando ? 0.6 : 1,
+            border: 'none',
+          }}
+        >
+          {salvando ? 'Salvando...' : 'Salvar Orcamento'}
+        </button>
       </div>
     </Layout>
   )
