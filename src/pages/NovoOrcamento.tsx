@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import type { CSSProperties, ReactNode } from 'react'
 import Layout from '../components/Layout'
 import EmitCard from '../components/EmitCard'
@@ -54,8 +54,10 @@ function SectionHeader({ children, color }: { children: ReactNode; color: 'g' | 
 export default function NovoOrcamento() {
   const { id: orcamentoId } = useParams<{ id: string }>()
   const modoEdicao = Boolean(orcamentoId)
+  const navigate = useNavigate()
   const {
     carregar: carregarCabecalhoCliente,
+    resetar: resetarCabecalhoCliente,
     cabecalho,
     atualizarCampo,
     cliente,
@@ -118,6 +120,15 @@ export default function NovoOrcamento() {
       config: configState.config,
       logoBase64,
     })
+  }
+
+  async function handleCriarNovo() {
+    setSalvoOk(false)
+    await resetarCabecalhoCliente()
+    itensState.resetar()
+    configState.resetar()
+    // Se estava numa rota de edicao, volta para /orcamentos/novo
+    if (modoEdicao) navigate('/orcamentos/novo')
   }
 
   const itensState = useItensOrcamento()
@@ -335,37 +346,94 @@ export default function NovoOrcamento() {
           borderTop: '1px solid var(--border)',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'flex-end',
+          justifyContent: 'space-between',
           gap: '16px',
           zIndex: 10,
         }}
       >
-        {erro && (
-          <span style={{ color: 'var(--red)', fontSize: '13px' }}>{erro}</span>
-        )}
-        {salvoOk && !erro && (
-          <span style={{ color: 'var(--green)', fontSize: '13px', fontWeight: 600 }}>
-            ✓ Orcamento salvo com sucesso
-          </span>
-        )}
         <button
           type="button"
-          onClick={handleSalvar}
-          disabled={salvando}
+          onClick={() => navigate('/orcamentos')}
           style={{
-            background: 'var(--green)',
-            color: '#fff',
+            background: 'transparent',
+            color: 'var(--text2)',
             fontWeight: 600,
             fontSize: '14px',
-            padding: '10px 24px',
+            padding: '10px 20px',
             borderRadius: '8px',
-            cursor: salvando ? 'not-allowed' : 'pointer',
-            opacity: salvando ? 0.6 : 1,
-            border: 'none',
+            cursor: 'pointer',
+            border: '1px solid var(--border2)',
           }}
         >
-          {salvando ? 'Salvando...' : 'Salvar Orcamento'}
+          &larr; Voltar
         </button>
+
+        <div className="flex items-center gap-4">
+          {erro && (
+            <span style={{ color: 'var(--red)', fontSize: '13px' }}>{erro}</span>
+          )}
+          {salvoOk && !erro && (
+            <span style={{ color: 'var(--green)', fontSize: '13px', fontWeight: 600 }}>
+              &#10003; Orcamento salvo com sucesso
+            </span>
+          )}
+
+          {salvoOk && !erro && !modoEdicao ? (
+            <>
+              <button
+                type="button"
+                onClick={handleCriarNovo}
+                style={{
+                  background: 'transparent',
+                  color: 'var(--green)',
+                  fontWeight: 600,
+                  fontSize: '14px',
+                  padding: '10px 20px',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  border: '1px solid var(--green)',
+                }}
+              >
+                + Criar Novo
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate('/orcamentos')}
+                style={{
+                  background: 'var(--green)',
+                  color: '#fff',
+                  fontWeight: 600,
+                  fontSize: '14px',
+                  padding: '10px 24px',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  border: 'none',
+                }}
+              >
+                Ir para Listagem
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={handleSalvar}
+              disabled={salvando}
+              style={{
+                background: 'var(--green)',
+                color: '#fff',
+                fontWeight: 600,
+                fontSize: '14px',
+                padding: '10px 24px',
+                borderRadius: '8px',
+                cursor: salvando ? 'not-allowed' : 'pointer',
+                opacity: salvando ? 0.6 : 1,
+                border: 'none',
+              }}
+            >
+              {salvando ? 'Salvando...' : modoEdicao ? 'Salvar Alteracoes' : 'Salvar Orcamento'}
+            </button>
+          )}
+        </div>
       </div>
     </Layout>
   )

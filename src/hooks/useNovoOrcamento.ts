@@ -139,6 +139,38 @@ export function useNovoOrcamento(modoEdicao = false) {
     setCliente({ nome: '', cnpj: '', endereco: '', responsavel: '', emailTelefone: '' })
   }
 
+  async function resetar() {
+    setCabecalho({
+      numero: '',
+      dataEmissao: hoje(),
+      validade: em30Dias(),
+      titulo: '',
+      condicoesPagamento: '',
+      observacoesGerais: '',
+      emailContato: '',
+      telefoneContato: '',
+    })
+    setCliente({ nome: '', cnpj: '', endereco: '', responsavel: '', emailTelefone: '' })
+    setClienteVinculado(null)
+    setClienteAvulso(false)
+    setClienteEditando(false)
+    setClienteBusca('')
+    // Busca um novo numero sugerido para o proximo orcamento
+    const perfil = await supabase.auth.getUser()
+    const userId = perfil.data.user?.id
+    const { data: usuarioRow } = await supabase
+      .from('usuarios')
+      .select('empresa_id')
+      .eq('id', userId)
+      .single()
+    if (usuarioRow) {
+      const { data } = await supabase.rpc('sugerir_numero_orcamento', {
+        p_empresa_id: usuarioRow.empresa_id,
+      })
+      if (data) setCabecalho((prev) => ({ ...prev, numero: data }))
+    }
+  }
+
   function carregar(
     novoCabecalho: CabecalhoOrcamento,
     novoCliente: DadosCliente,
@@ -156,6 +188,7 @@ export function useNovoOrcamento(modoEdicao = false) {
   return {
     cabecalho,
     carregar,
+    resetar,
     atualizarCampo,
     cliente,
     atualizarCliente,
