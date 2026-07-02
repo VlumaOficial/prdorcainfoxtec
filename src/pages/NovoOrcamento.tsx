@@ -12,6 +12,7 @@ import { useConfigGlobal } from '../hooks/useConfigGlobal'
 import { useNovoOrcamento } from '../hooks/useNovoOrcamento'
 import { useSalvarOrcamento } from '../hooks/useSalvarOrcamento'
 import { carregarOrcamento } from '../hooks/useCarregarOrcamento'
+import StatusActions from '../components/StatusActions'
 
 const sectionStyle: CSSProperties = {
   background: 'var(--navy2)',
@@ -88,9 +89,15 @@ export default function NovoOrcamento() {
     }
   }
 
+  async function handleMudarStatus(novo: string) {
+    if (!orcamentoId) return
+    const ok = await mudarStatus(orcamentoId, novo)
+    if (ok) setStatusAtual(novo)
+  }
+
   const itensState = useItensOrcamento()
   const configState = useConfigGlobal()
-  const { salvar, atualizar, salvando, erro } = useSalvarOrcamento()
+  const { salvar, atualizar, mudarStatus, salvando, erro } = useSalvarOrcamento()
   const [salvoOk, setSalvoOk] = useState(false)
   const [statusAtual, setStatusAtual] = useState<string>('rascunho')
   const [carregandoEdicao, setCarregandoEdicao] = useState(modoEdicao)
@@ -126,8 +133,12 @@ export default function NovoOrcamento() {
   return (
     <Layout>
       {modoEdicao && (
-        <div className="mb-4 text-[var(--text2)] text-sm">
-          Editando orcamento • status atual: <span className="text-[var(--text)] font-medium">{statusAtual}</span>
+        <div className="mb-4 p-3 rounded-lg" style={{ background: 'var(--navy2)', border: '1px solid var(--border)' }}>
+          <StatusActions
+            status={statusAtual as 'rascunho' | 'enviado' | 'aprovado' | 'recusado' | 'expirado'}
+            desabilitado={salvando}
+            onMudar={handleMudarStatus}
+          />
         </div>
       )}
       <EmitCard

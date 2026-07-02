@@ -192,5 +192,26 @@ export function useSalvarOrcamento() {
     }
   }
 
-  return { salvar, atualizar, salvando, erro }
+  async function mudarStatus(id: string, novoStatus: string): Promise<boolean> {
+    setSalvando(true)
+    setErro(null)
+    try {
+      const { error } = await supabase
+        .from('orcamentos')
+        .update({ status: novoStatus, updated_at: new Date().toISOString() })
+        .eq('id', id)
+      if (error) {
+        setErro('Erro ao mudar status: ' + error.message)
+        return false
+      }
+      return true
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : 'Erro inesperado ao mudar status.')
+      return false
+    } finally {
+      setSalvando(false)
+    }
+  }
+
+  return { salvar, atualizar, mudarStatus, salvando, erro }
 }
