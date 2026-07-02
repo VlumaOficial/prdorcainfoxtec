@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { limitesDoPeriodo } from '../lib/periodo'
+import type { Periodo } from '../lib/periodo'
 
 interface Kpis {
   orcamentosNoMes: number
@@ -10,27 +12,20 @@ interface Kpis {
   ticketMedio: number
 }
 
-// Retorna 'YYYY-MM-DD' do primeiro dia do mes atual (sem hora, evita problema de fuso)
-function primeiroDiaDoMes(): string {
-  const d = new Date()
-  const ano = d.getFullYear()
-  const mes = String(d.getMonth() + 1).padStart(2, '0')
-  return `${ano}-${mes}-01`
-}
-
-export function useKpis() {
+export function useKpis(periodo: Periodo) {
   const [kpis, setKpis] = useState<Kpis | null>(null)
   const [carregando, setCarregando] = useState(true)
 
   useEffect(() => {
     async function buscar() {
-      const inicioMes = primeiroDiaDoMes()
+      setCarregando(true)
+      const limites = limitesDoPeriodo(periodo)
 
-      // Filtra por data_emissao (data de negocio do orcamento), comparando por data
-      const { data: orcamentos } = await supabase
-        .from('orcamentos')
-        .select('total_final, total_lucro, status')
-        .gte('data_emissao', inicioMes)
+      let query = supabase.from('orcamentos').select('total_final, total_lucro, status')
+      if (limites) {
+        query = query.gte('data_emissao', limites.inicio).lt('data_emissao', limites.fim)
+      }
+      const { data: orcamentos } = await query
 
       const { count: clientesAtivos } = await supabase
         .from('clientes')
@@ -39,7 +34,6 @@ export function useKpis() {
 
       const lista = (orcamentos ?? []) as { total_final: unknown; total_lucro: unknown; status: string }[]
       const orcamentosNoMes = lista.length
-      // Converte para numero (o Supabase retorna numeric como string)
       const valorTotalOrcado = lista.reduce((s, o) => s + (Number(o.total_final) || 0), 0)
       const lucroProjetado = lista.reduce((s, o) => s + (Number(o.total_lucro) || 0), 0)
       const aprovados = lista.filter((o) => o.status === 'aprovado').length
@@ -57,7 +51,7 @@ export function useKpis() {
       setCarregando(false)
     }
     buscar()
-  }, [])
+  }, [periodo.mes, periodo.ano, periodo.tudo])
 
   return { kpis, carregando }
 }
