@@ -127,9 +127,10 @@ export function gerarPdf(dados: DadosPdf) {
   if (contatoCliente) doc.text('Resp: ' + contatoCliente, cx + 4, y + 29, { maxWidth: cw - 8 })
   y += 39
 
-  // ── TABELA DE ITENS ──
+  // ── TABELA DE ITENS (Opcao A: colunas que somam; imposto vai no resumo) ──
   let tFinal = 0
   let tDescPDF = 0
+  let tImpPDF = 0
   const rows: (string | number)[][] = []
 
   for (const item of itens) {
@@ -137,39 +138,25 @@ export function gerarPdf(dados: DadosPdf) {
     const r = calcularItem(item, config)
     tFinal += r.total
     tDescPDF += r.descVal
-    if (showI) {
-      rows.push([
-        rows.length + 1,
-        item.descricao || '--',
-        item.qtd.toLocaleString('pt-BR'),
-        fmtBR(r.precoTabela),
-        fmtBR(r.comImposto),
-        fmtBR(r.total),
-      ])
-    } else {
-      rows.push([rows.length + 1, item.descricao || '--', item.qtd.toLocaleString('pt-BR'), fmtBR(r.total)])
-    }
+    tImpPDF += r.comImposto
+    rows.push([
+      rows.length + 1,
+      item.descricao || '--',
+      item.qtd.toLocaleString('pt-BR'),
+      fmtBR(r.precoTabela),
+      fmtBR(r.total),
+    ])
   }
 
-  const head = showI
-    ? ['#', 'Descricao', 'Qtd', 'Vl. Produto', 'Imposto', 'Total']
-    : ['#', 'Descricao', 'Qtd', 'Total']
+  const head = ['#', 'Descricao', 'Qtd', 'Vl. Unitario', 'Total']
 
-  const columnStyles: Record<number, Record<string, unknown>> = showI
-    ? {
-        0: { halign: 'center', cellWidth: 8 },
-        1: { halign: 'left' },
-        2: { halign: 'center', cellWidth: 12 },
-        3: { halign: 'right', cellWidth: 27 },
-        4: { halign: 'right', cellWidth: 25 },
-        5: { halign: 'right', cellWidth: 25, fontStyle: 'bold' },
-      }
-    : {
-        0: { halign: 'center', cellWidth: 8 },
-        1: { halign: 'left' },
-        2: { halign: 'center', cellWidth: 14 },
-        3: { halign: 'right', cellWidth: 28, fontStyle: 'bold' },
-      }
+  const columnStyles: Record<number, Record<string, unknown>> = {
+    0: { halign: 'center', cellWidth: 8 },
+    1: { halign: 'left' },
+    2: { halign: 'center', cellWidth: 14 },
+    3: { halign: 'right', cellWidth: 30 },
+    4: { halign: 'right', cellWidth: 30, fontStyle: 'bold' },
+  }
 
   autoTable(doc, {
     startY: y,
@@ -188,14 +175,18 @@ export function gerarPdf(dados: DadosPdf) {
   // ── DESCONTO (se toggle e houver) ──
   const bw = 90
   const bx = W - mg - bw
+  const linhasResumo: string[][] = []
   if (showD && tDescPDF > 0) {
-    const subtotal = tFinal + tDescPDF
+    linhasResumo.push(['Subtotal', fmtBR(tFinal + tDescPDF)])
+    linhasResumo.push(['(-) Desconto', '- ' + fmtBR(tDescPDF)])
+  }
+  if (showI && tImpPDF > 0) {
+    linhasResumo.push(['Impostos inclusos', fmtBR(tImpPDF)])
+  }
+  if (linhasResumo.length > 0) {
     autoTable(doc, {
       startY: y,
-      body: [
-        ['Subtotal', fmtBR(subtotal)],
-        ['(-) Desconto', '- ' + fmtBR(tDescPDF)],
-      ],
+      body: linhasResumo,
       margin: { left: bx, right: mg },
       tableWidth: bw,
       bodyStyles: { fontSize: 8 },
