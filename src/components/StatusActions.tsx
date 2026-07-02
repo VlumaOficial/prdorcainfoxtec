@@ -31,9 +31,9 @@ function botao(cor: string, contorno = false): CSSProperties {
     padding: '6px 14px',
     borderRadius: '7px',
     cursor: 'pointer',
-    border: contorno ? '1px solid var(--border2)' : 'none',
+    border: contorno ? '1px solid var(--text3)' : 'none',
     background: contorno ? 'transparent' : cor,
-    color: contorno ? 'var(--text3)' : '#fff',
+    color: contorno ? 'var(--text)' : '#fff',
     whiteSpace: 'nowrap',
   }
 }
