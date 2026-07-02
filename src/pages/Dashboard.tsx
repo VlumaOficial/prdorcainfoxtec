@@ -1,5 +1,7 @@
 import { useKpis } from '../hooks/useKpis'
 import Layout from '../components/Layout'
+import { useDistribuicaoStatus } from '../hooks/useDistribuicaoStatus'
+import CardDistribuicaoStatus from '../components/CardDistribuicaoStatus'
 
 function formatarMoeda(valor: number) {
   return valor.toLocaleString('pt-BR', {
@@ -10,6 +12,7 @@ function formatarMoeda(valor: number) {
 
 export default function Dashboard() {
   const { kpis, carregando } = useKpis()
+  const { distribuicao, carregando: carregandoDist } = useDistribuicaoStatus()
 
   const cards = [
     {
@@ -70,6 +73,7 @@ export default function Dashboard() {
             </p>
           </div>
         ))}
+        <CardDistribuicaoStatus distribuicao={distribuicao} carregando={carregandoDist} />
       </div>
     </Layout>
   )
