@@ -4,6 +4,7 @@ import Layout from '../components/Layout'
 import { useDistribuicaoStatus } from '../hooks/useDistribuicaoStatus'
 import CardDistribuicaoStatus from '../components/CardDistribuicaoStatus'
 import { periodoPadrao, NOMES_MESES } from '../lib/periodo'
+import { useAnosDisponiveis } from '../hooks/useAnosDisponiveis'
 import type { Periodo } from '../lib/periodo'
 
 function formatarMoeda(valor: number) {
@@ -15,9 +16,8 @@ export default function Dashboard() {
   const { kpis, carregando } = useKpis(periodo)
   const { distribuicao, carregando: carregandoDist } = useDistribuicaoStatus(periodo)
 
-  // Anos disponiveis no seletor: do ano atual ate 3 anos atras
-  const anoAtual = new Date().getFullYear()
-  const anos = [anoAtual, anoAtual - 1, anoAtual - 2, anoAtual - 3]
+  // Anos disponiveis: buscados do banco (anos com orcamentos) + ano corrente
+  const anos = useAnosDisponiveis()
 
   const sufixo = periodo.tudo ? 'no total' : 'no periodo'
 
