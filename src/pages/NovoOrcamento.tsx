@@ -13,6 +13,8 @@ import { useNovoOrcamento } from '../hooks/useNovoOrcamento'
 import { useSalvarOrcamento } from '../hooks/useSalvarOrcamento'
 import { carregarOrcamento } from '../hooks/useCarregarOrcamento'
 import StatusActions from '../components/StatusActions'
+import { gerarPdf } from '../lib/gerarPdf'
+import logoInfoxtec from '../assets/infoxtec-logo.jpeg'
 
 const sectionStyle: CSSProperties = {
   background: 'var(--navy2)',
@@ -95,6 +97,29 @@ export default function NovoOrcamento() {
     if (ok) setStatusAtual(novo)
   }
 
+  async function handleGerarPdf() {
+    // Converte o logo (asset) para base64 para embutir no PDF
+    let logoBase64: string | undefined
+    try {
+      const resp = await fetch(logoInfoxtec)
+      const blob = await resp.blob()
+      logoBase64 = await new Promise<string>((resolve) => {
+        const reader = new FileReader()
+        reader.onloadend = () => resolve(reader.result as string)
+        reader.readAsDataURL(blob)
+      })
+    } catch {
+      logoBase64 = undefined
+    }
+    gerarPdf({
+      cabecalho,
+      cliente,
+      itens: itensState.itens,
+      config: configState.config,
+      logoBase64,
+    })
+  }
+
   const itensState = useItensOrcamento()
   const configState = useConfigGlobal()
   const { salvar, atualizar, mudarStatus, salvando, erro } = useSalvarOrcamento()
@@ -133,12 +158,19 @@ export default function NovoOrcamento() {
   return (
     <Layout>
       {modoEdicao && (
-        <div className="mb-4 p-3 rounded-lg" style={{ background: 'var(--navy2)', border: '1px solid var(--border)' }}>
+        <div className="mb-4 p-3 rounded-lg flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3" style={{ background: 'var(--navy2)', border: '1px solid var(--border)' }}>
           <StatusActions
             status={statusAtual as 'rascunho' | 'enviado' | 'aprovado' | 'recusado' | 'expirado'}
             desabilitado={salvando}
             onMudar={handleMudarStatus}
           />
+          <button
+            type="button"
+            onClick={handleGerarPdf}
+            className="bg-gradient-to-br from-[var(--green-dark)] to-[var(--green)] text-white rounded-md px-4 py-2 font-semibold text-sm whitespace-nowrap"
+          >
+            Gerar PDF
+          </button>
         </div>
       )}
       <EmitCard
