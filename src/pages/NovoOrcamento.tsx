@@ -89,6 +89,7 @@ export default function NovoOrcamento() {
       : await salvar(dados)
     if (id) {
       setSalvoOk(true)
+      if (!modoEdicao) setMostrarPosSalvar(true)
       setTimeout(() => setSalvoOk(false), 3000)
     }
   }
@@ -124,6 +125,7 @@ export default function NovoOrcamento() {
 
   async function handleCriarNovo() {
     setSalvoOk(false)
+    setMostrarPosSalvar(false)
     await resetarCabecalhoCliente()
     itensState.resetar()
     configState.resetar()
@@ -135,6 +137,7 @@ export default function NovoOrcamento() {
   const configState = useConfigGlobal()
   const { salvar, atualizar, mudarStatus, salvando, erro } = useSalvarOrcamento()
   const [salvoOk, setSalvoOk] = useState(false)
+  const [mostrarPosSalvar, setMostrarPosSalvar] = useState(false)
   const [statusAtual, setStatusAtual] = useState<string>('rascunho')
   const [carregandoEdicao, setCarregandoEdicao] = useState(modoEdicao)
 
@@ -378,7 +381,7 @@ export default function NovoOrcamento() {
             </span>
           )}
 
-          {salvoOk && !erro && !modoEdicao ? (
+          {mostrarPosSalvar && !erro && !modoEdicao ? (
             <>
               <button
                 type="button"
