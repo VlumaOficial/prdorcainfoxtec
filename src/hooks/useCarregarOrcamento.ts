@@ -3,6 +3,7 @@ import type { CabecalhoOrcamento, DadosCliente } from './useNovoOrcamento'
 import type { ItemOrcamento } from './useItensOrcamento'
 import type { ConfigGlobal } from './useConfigGlobal'
 import type { Cliente } from './useClientes'
+import type { Produto } from './useProdutos'
 
 export interface OrcamentoCompleto {
   cabecalho: CabecalhoOrcamento
@@ -77,22 +78,41 @@ export async function carregarOrcamento(id: string): Promise<OrcamentoCompleto |
     descNoPdf: false,
   }
 
-  const itens: ItemOrcamento[] = (itensRows || []).map((r: Record<string, unknown>) => ({
-    id: novoId(),
-    descricao: (r.descricao as string) || '',
-    qtd: Number(r.qtd) || 1,
-    custoUnit: Number(r.custo_unit) || 0,
-    produtoVinculado: null, // sera resolvido ao salvar; edicao mantem descricao
-    produtoAvulso: !r.produto_id,
-    produtoEditando: false,
-    usaImpGlobal: r.usa_imp_global as boolean,
-    impPct: Number(r.imp_pct) || 0,
-    usaMargGlobal: r.usa_marg_global as boolean,
-    margPct: Number(r.marg_pct) || 0,
-    usaDescGlobal: r.usa_desc_global as boolean,
-    descPct: Number(r.desc_pct) || 0,
-    descFix: Number(r.desc_fix) || 0,
-  }))
+  // Busca os produtos vinculados (para preservar o vinculo na edicao)
+  const produtoIds = (itensRows || [])
+    .map((r: Record<string, unknown>) => r.produto_id as string | null)
+    .filter((pid: string | null): pid is string => Boolean(pid))
+  const produtosPorId: Record<string, Produto> = {}
+  if (produtoIds.length > 0) {
+    const { data: prods } = await supabase
+      .from('produtos')
+      .select('*')
+      .in('id', produtoIds)
+    for (const p of (prods || []) as Produto[]) {
+      produtosPorId[p.id] = p
+    }
+  }
+
+  const itens: ItemOrcamento[] = (itensRows || []).map((r: Record<string, unknown>) => {
+    const pid = r.produto_id as string | null
+    const produtoVinculado = pid ? produtosPorId[pid] || null : null
+    return {
+      id: novoId(),
+      descricao: (r.descricao as string) || '',
+      qtd: Number(r.qtd) || 1,
+      custoUnit: Number(r.custo_unit) || 0,
+      produtoVinculado,
+      produtoAvulso: !pid,
+      produtoEditando: false,
+      usaImpGlobal: r.usa_imp_global as boolean,
+      impPct: Number(r.imp_pct) || 0,
+      usaMargGlobal: r.usa_marg_global as boolean,
+      margPct: Number(r.marg_pct) || 0,
+      usaDescGlobal: r.usa_desc_global as boolean,
+      descPct: Number(r.desc_pct) || 0,
+      descFix: Number(r.desc_fix) || 0,
+    }
+  })
 
   // Determina se o cliente e avulso: tem nome mas nao esta vinculado
   const clienteAvulso = !clienteVinculado && (cliente.nome.trim().length > 0)
