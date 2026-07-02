@@ -102,6 +102,7 @@ export default function Clientes() {
               <th className="px-4 py-3 text-[var(--text3)] text-xs uppercase tracking-wide">Nome</th>
               <th className="px-4 py-3 text-[var(--text3)] text-xs uppercase tracking-wide">CNPJ</th>
               <th className="px-4 py-3 text-[var(--text3)] text-xs uppercase tracking-wide">Responsável</th>
+              <th className="px-4 py-3 text-[var(--text3)] text-xs uppercase tracking-wide">Endereço</th>
               <th className="px-4 py-3 text-[var(--text3)] text-xs uppercase tracking-wide">Email</th>
               <th className="px-4 py-3 text-[var(--text3)] text-xs uppercase tracking-wide">Status</th>
               <th className="px-4 py-3 text-[var(--text3)] text-xs uppercase tracking-wide"></th>
@@ -129,6 +130,7 @@ export default function Clientes() {
                 <td className="px-4 py-3 text-[var(--text)]">{c.nome}</td>
                 <td className="px-4 py-3 text-[var(--text2)]">{c.cnpj || '—'}</td>
                 <td className="px-4 py-3 text-[var(--text2)]">{c.responsavel || '—'}</td>
+                <td className="px-4 py-3 text-[var(--text2)] max-w-[180px] truncate" title={c.endereco || ''}>{c.endereco || '—'}</td>
                 <td className="px-4 py-3 text-[var(--text2)]">{c.email || '—'}</td>
                 <td className="px-4 py-3">
                   {c.ativo ? (
@@ -179,6 +181,7 @@ export default function Clientes() {
             </div>
             <p className="text-[var(--text2)] text-sm mb-1">CNPJ: {c.cnpj || '—'}</p>
             <p className="text-[var(--text2)] text-sm mb-1">Responsável: {c.responsavel || '—'}</p>
+            <p className="text-[var(--text2)] text-sm mb-1">Endereço: {c.endereco || '—'}</p>
             <p className="text-[var(--text2)] text-sm mb-3">Email: {c.email || '—'}</p>
             <div className="flex gap-4 pt-2 border-t border-[var(--border)]">
               <button onClick={() => abrirEdicao(c)} className="text-[var(--blue)] text-sm">
