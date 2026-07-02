@@ -5,6 +5,7 @@ import type { CabecalhoOrcamento, DadosCliente } from './useNovoOrcamento'
 import type { ItemOrcamento } from './useItensOrcamento'
 import type { ConfigGlobal } from './useConfigGlobal'
 import type { Cliente } from './useClientes'
+import type { Divergencia } from '../lib/detectarDivergencias'
 
 // IDs fixos da Infoxtec (multi-tenant single-empresa por enquanto)
 const EMPRESA_ID = '24c1f3b2-aacc-4717-9de7-3dacab50fb91'
@@ -213,5 +214,36 @@ export function useSalvarOrcamento() {
     }
   }
 
-  return { salvar, atualizar, mudarStatus, salvando, erro }
+  // Aplica as divergencias ao catalogo (UPDATE em produtos/clientes)
+  async function atualizarCatalogo(divergencias: Divergencia[]): Promise<boolean> {
+    try {
+      for (const d of divergencias) {
+        if (d.tipo === 'produto') {
+          const { error } = await supabase
+            .from('produtos')
+            .update({ nome: d.novoNome, custo_padrao: d.novoCusto })
+            .eq('id', d.produtoId)
+          if (error) throw new Error('Erro ao atualizar produto: ' + error.message)
+        } else {
+          const { error } = await supabase
+            .from('clientes')
+            .update({
+              nome: d.novos.nome,
+              cnpj: d.novos.cnpj || null,
+              endereco: d.novos.endereco || null,
+              responsavel: d.novos.responsavel || null,
+              email: d.novos.email || null,
+            })
+            .eq('id', d.clienteId)
+          if (error) throw new Error('Erro ao atualizar cliente: ' + error.message)
+        }
+      }
+      return true
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : 'Erro ao atualizar o catalogo.')
+      return false
+    }
+  }
+
+  return { salvar, atualizar, mudarStatus, atualizarCatalogo, salvando, erro }
 }

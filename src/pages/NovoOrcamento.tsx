@@ -13,6 +13,9 @@ import { useNovoOrcamento } from '../hooks/useNovoOrcamento'
 import { useSalvarOrcamento } from '../hooks/useSalvarOrcamento'
 import { carregarOrcamento } from '../hooks/useCarregarOrcamento'
 import StatusActions from '../components/StatusActions'
+import ModalDivergencias from '../components/ModalDivergencias'
+import { detectarDivergencias } from '../lib/detectarDivergencias'
+import type { Divergencia } from '../lib/detectarDivergencias'
 import { gerarPdf } from '../lib/gerarPdf'
 import logoInfoxtec from '../assets/infoxtec-logo.jpeg'
 
@@ -75,8 +78,8 @@ export default function NovoOrcamento() {
     carregandoNumero,
   } = useNovoOrcamento(modoEdicao)
 
-  async function handleSalvar() {
-    const dados = {
+  function montarDados() {
+    return {
       cabecalho,
       cliente,
       clienteVinculado,
@@ -84,6 +87,10 @@ export default function NovoOrcamento() {
       itens: itensState.itens,
       config: configState.config,
     }
+  }
+
+  async function executarSalvamento() {
+    const dados = montarDados()
     const id = modoEdicao && orcamentoId
       ? await atualizar(orcamentoId, dados, statusAtual)
       : await salvar(dados)
@@ -92,6 +99,31 @@ export default function NovoOrcamento() {
       if (!modoEdicao) setMostrarPosSalvar(true)
       setTimeout(() => setSalvoOk(false), 3000)
     }
+    return id
+  }
+
+  async function handleSalvar() {
+    // Em modo edicao, detecta divergencias com o catalogo antes de salvar
+    if (modoEdicao) {
+      const divs = detectarDivergencias(itensState.itens, cliente, clienteVinculado)
+      if (divs.length > 0) {
+        setDivergencias(divs)
+        setModalAberto(true)
+        return
+      }
+    }
+    await executarSalvamento()
+  }
+
+  async function handleModalAtualizarCatalogo() {
+    await atualizarCatalogo(divergencias)
+    setModalAberto(false)
+    await executarSalvamento()
+  }
+
+  async function handleModalSoNesteOrcamento() {
+    setModalAberto(false)
+    await executarSalvamento()
   }
 
   async function handleMudarStatus(novo: string) {
@@ -135,9 +167,11 @@ export default function NovoOrcamento() {
 
   const itensState = useItensOrcamento()
   const configState = useConfigGlobal()
-  const { salvar, atualizar, mudarStatus, salvando, erro } = useSalvarOrcamento()
+  const { salvar, atualizar, mudarStatus, atualizarCatalogo, salvando, erro } = useSalvarOrcamento()
   const [salvoOk, setSalvoOk] = useState(false)
   const [mostrarPosSalvar, setMostrarPosSalvar] = useState(false)
+  const [divergencias, setDivergencias] = useState<Divergencia[]>([])
+  const [modalAberto, setModalAberto] = useState(false)
   const [statusAtual, setStatusAtual] = useState<string>('rascunho')
   const [carregandoEdicao, setCarregandoEdicao] = useState(modoEdicao)
 
@@ -438,6 +472,16 @@ export default function NovoOrcamento() {
           )}
         </div>
       </div>
+
+      {modalAberto && (
+        <ModalDivergencias
+          divergencias={divergencias}
+          processando={salvando}
+          onAtualizarCatalogo={handleModalAtualizarCatalogo}
+          onSoNesteOrcamento={handleModalSoNesteOrcamento}
+          onCancelar={() => setModalAberto(false)}
+        />
+      )}
     </Layout>
   )
 }
