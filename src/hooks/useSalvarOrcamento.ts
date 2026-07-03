@@ -7,10 +7,6 @@ import type { ConfigGlobal } from './useConfigGlobal'
 import type { Cliente } from './useClientes'
 import type { Divergencia } from '../lib/detectarDivergencias'
 
-// IDs fixos da Infoxtec (multi-tenant single-empresa por enquanto)
-const EMPRESA_ID = '24c1f3b2-aacc-4717-9de7-3dacab50fb91'
-const USUARIO_ID = '3c0646f0-28ec-4d86-af41-cb8eee4e30d3'
-
 interface DadosSalvar {
   cabecalho: CabecalhoOrcamento
   cliente: DadosCliente
@@ -20,16 +16,38 @@ interface DadosSalvar {
   config: ConfigGlobal
 }
 
+// Contexto do usuario logado (empresa + id), resolvido dinamicamente.
+interface ContextoUsuario {
+  empresaId: string
+  userId: string
+}
+
 export function useSalvarOrcamento() {
   const [salvando, setSalvando] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
 
+  // Busca a empresa e o id do usuario autenticado (multi-tenant).
+  async function obterContexto(): Promise<ContextoUsuario> {
+    const perfil = await supabase.auth.getUser()
+    const userId = perfil.data.user?.id
+    if (!userId) throw new Error('Usuario nao autenticado.')
+
+    const { data: usuarioRow, error } = await supabase
+      .from('usuarios')
+      .select('empresa_id')
+      .eq('id', userId)
+      .single()
+
+    if (error || !usuarioRow) throw new Error('Perfil do usuario nao encontrado.')
+    return { empresaId: usuarioRow.empresa_id as string, userId }
+  }
+
   // Cria um cliente novo no catalogo e retorna o id
-  async function criarClienteNovo(cliente: DadosCliente): Promise<string> {
+  async function criarClienteNovo(cliente: DadosCliente, empresaId: string): Promise<string> {
     const { data, error } = await supabase
       .from('clientes')
       .insert({
-        empresa_id: EMPRESA_ID,
+        empresa_id: empresaId,
         nome: cliente.nome,
         cnpj: cliente.cnpj || null,
         endereco: cliente.endereco || null,
@@ -44,11 +62,11 @@ export function useSalvarOrcamento() {
   }
 
   // Cria um produto novo no catalogo e retorna o id
-  async function criarProdutoNovo(descricao: string, custo: number): Promise<string> {
+  async function criarProdutoNovo(descricao: string, custo: number, empresaId: string): Promise<string> {
     const { data, error } = await supabase
       .from('produtos')
       .insert({
-        empresa_id: EMPRESA_ID,
+        empresa_id: empresaId,
         nome: descricao,
         descricao: null,
         custo_padrao: custo,
@@ -61,7 +79,7 @@ export function useSalvarOrcamento() {
   }
 
   // Resolve cliente + produtos e monta os payloads (comum a salvar e atualizar)
-  async function montarPayloads(dados: DadosSalvar, status: string) {
+  async function montarPayloads(dados: DadosSalvar, status: string, ctx: ContextoUsuario) {
     const { cabecalho, cliente, clienteVinculado, clienteAvulso, itens, config } = dados
 
     // Resolve o cliente
@@ -69,7 +87,7 @@ export function useSalvarOrcamento() {
     if (clienteVinculado) {
       clienteId = clienteVinculado.id
     } else if (!clienteAvulso && cliente.nome.trim().length > 0) {
-      clienteId = await criarClienteNovo(cliente)
+      clienteId = await criarClienteNovo(cliente, ctx.empresaId)
     }
 
     // Resolve os produtos dos itens
@@ -79,7 +97,7 @@ export function useSalvarOrcamento() {
         if (item.produtoVinculado) {
           produtoId = item.produtoVinculado.id
         } else if (!item.produtoAvulso && item.descricao.trim().length > 0) {
-          produtoId = await criarProdutoNovo(item.descricao, item.custoUnit)
+          produtoId = await criarProdutoNovo(item.descricao, item.custoUnit, ctx.empresaId)
         }
         return { item, produtoId }
       })
@@ -88,7 +106,7 @@ export function useSalvarOrcamento() {
     const t = calcularTotais(itens, config)
 
     const payloadOrcamento = {
-      empresa_id: EMPRESA_ID,
+      empresa_id: ctx.empresaId,
       cliente_id: clienteId,
       numero: cabecalho.numero,
       data_emissao: cabecalho.dataEmissao,
@@ -112,7 +130,7 @@ export function useSalvarOrcamento() {
       total_lucro: t.tLuc,
       total_final: t.tFinal,
       status,
-      criado_por: USUARIO_ID,
+      criado_por: ctx.userId,
     }
 
     const payloadItens = itensResolvidos.map(({ item, produtoId }) => ({
@@ -142,7 +160,8 @@ export function useSalvarOrcamento() {
         return null
       }
 
-      const { payloadOrcamento, payloadItens } = await montarPayloads(dados, 'rascunho')
+      const ctx = await obterContexto()
+      const { payloadOrcamento, payloadItens } = await montarPayloads(dados, 'rascunho', ctx)
 
       const { data, error } = await supabase.rpc('salvar_orcamento', {
         p_orcamento: payloadOrcamento,
@@ -172,7 +191,8 @@ export function useSalvarOrcamento() {
         return null
       }
 
-      const { payloadOrcamento, payloadItens } = await montarPayloads(dados, statusAtual)
+      const ctx = await obterContexto()
+      const { payloadOrcamento, payloadItens } = await montarPayloads(dados, statusAtual, ctx)
 
       const { data, error } = await supabase.rpc('atualizar_orcamento', {
         p_id: id,
