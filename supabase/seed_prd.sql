@@ -1,6 +1,7 @@
 -- Seed de PRODUCAO — registros-base minimos para o sistema operar.
--- Reusa os mesmos UUIDs do ambiente de homologacao (decisao: Opcao 1).
 -- NAO inclui dados de teste (clientes/produtos/orcamentos ficam vazios).
+-- IMPORTANTE: o usuario admin deve ser criado ANTES em Authentication > Users
+-- (o UUID abaixo e o gerado pelo Supabase Auth do PRD).
 
 -- Empresa Infoxtec (com configuracoes padrao de imposto/margem)
 insert into public.empresas (
@@ -16,11 +17,11 @@ insert into public.empresas (
 )
 on conflict (id) do nothing;
 
--- Usuario-perfil admin (o registro em auth.users deve ser criado separadamente)
+-- Perfil do admin — UUID do auth.users do PRD (Auto Confirm criado no painel)
 insert into public.usuarios (
   id, empresa_id, nome, email, ativo
 ) values (
-  '3c0646f0-28ec-4d86-af41-cb8eee4e30d3',
+  'aea79981-73a0-4ab1-9fdc-aeaa98695134',
   '24c1f3b2-aacc-4717-9de7-3dacab50fb91',
   'adm',
   'adm@infoxtec.com.br',
