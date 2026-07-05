@@ -17,8 +17,7 @@ jobs:
         run: |
           set -euo pipefail
           echo "=================================================="
-          echo " Banco alvo : $SUPABASE_URL"
-          echo " Tabela     : $SUPABASE_TABLE"
+          echo " Keep-alive iniciado"
           echo "=================================================="
 
           URL="$SUPABASE_URL/rest/v1/$SUPABASE_TABLE?select=*&limit=1"
@@ -33,11 +32,11 @@ jobs:
           RANGE=$(grep -i "content-range" /tmp/headers.txt | tr -d "\r" || true)
           echo "HTTP status   : $HTTP"
           echo "Content-Range : ${RANGE:-nao informado}"
+          echo "Resposta banco: $(cat /tmp/body.txt)"
 
           if [ "$HTTP" = "200" ] || [ "$HTTP" = "206" ]; then
             echo "OK - banco respondeu a consulta. Keep-alive efetivo."
           else
             echo "FALHA - status inesperado ($HTTP)."
-            echo "Resposta:"; cat /tmp/body.txt
             exit 1
           fi
