@@ -1,0 +1,43 @@
+name: Keep Supabase Alive
+
+on:
+  schedule:
+    - cron: '0 */8 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  ping-supabase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Query real no banco (keep-alive)
+        env:
+          SUPABASE_URL:      ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_TABLE:    ${{ secrets.SUPABASE_TABLE }}
+        run: |
+          set -euo pipefail
+          echo "=================================================="
+          echo " Banco alvo : $SUPABASE_URL"
+          echo " Tabela     : $SUPABASE_TABLE"
+          echo "=================================================="
+
+          URL="$SUPABASE_URL/rest/v1/$SUPABASE_TABLE?select=*&limit=1"
+
+          HTTP=$(curl -sS -o /tmp/body.txt -w "%{http_code}" \
+            -X GET "$URL" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
+            -H "Prefer: count=exact" \
+            -D /tmp/headers.txt)
+
+          RANGE=$(grep -i "content-range" /tmp/headers.txt | tr -d "\r" || true)
+          echo "HTTP status   : $HTTP"
+          echo "Content-Range : ${RANGE:-nao informado}"
+
+          if [ "$HTTP" = "200" ] || [ "$HTTP" = "206" ]; then
+            echo "OK - banco respondeu a consulta. Keep-alive efetivo."
+          else
+            echo "FALHA - status inesperado ($HTTP)."
+            echo "Resposta:"; cat /tmp/body.txt
+            exit 1
+          fi
