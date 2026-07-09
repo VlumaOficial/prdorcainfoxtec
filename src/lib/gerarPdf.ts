@@ -56,7 +56,7 @@ export function gerarPdf(dados: DadosPdf) {
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(11)
   doc.setTextColor(...green)
-  doc.text('ORCAMENTO', W - mg, 18, { align: 'right' })
+  doc.text('ORÇAMENTO', W - mg, 18, { align: 'right' })
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(8)
   doc.setTextColor(...cinzaCl)
@@ -78,7 +78,7 @@ export function gerarPdf(dados: DadosPdf) {
   doc.setTextColor(...cinza)
   const dE = fmtData(cabecalho.dataEmissao)
   const dV = fmtData(cabecalho.validade)
-  const infoLinha = [dE ? 'Emitido em ' + dE : '', dV ? 'Valido ate ' + dV : ''].filter(Boolean).join('    ')
+  const infoLinha = [dE ? 'Emitido em ' + dE : '', dV ? 'Válido até ' + dV : ''].filter(Boolean).join('    ')
   if (infoLinha) {
     doc.text(infoLinha, mg, y)
     y += 8
@@ -139,16 +139,19 @@ export function gerarPdf(dados: DadosPdf) {
     tFinal += r.total
     tDescPDF += r.descVal
     tImpPDF += r.comImposto
+    // Valor unitario real que FECHA a conta: total da linha / quantidade.
+    // (o preco cheio ja embute a quantidade, entao dividimos para exibir o unitario)
+    const valorUnitario = item.qtd > 0 ? r.total / item.qtd : r.total
     rows.push([
       rows.length + 1,
       item.descricao || '--',
       item.qtd.toLocaleString('pt-BR'),
-      fmtBR(r.precoTabela),
+      fmtBR(valorUnitario),
       fmtBR(r.total),
     ])
   }
 
-  const head = ['#', 'Descricao', 'Qtd', 'Vl. Unitario', 'Total']
+  const head = ['#', 'Descrição', 'Qtd', 'Valor Unit.', 'Total']
 
   const columnStyles: Record<number, Record<string, unknown>> = {
     0: { halign: 'center', cellWidth: 8 },
@@ -218,7 +221,7 @@ export function gerarPdf(dados: DadosPdf) {
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(8)
     doc.setTextColor(...navy)
-    doc.text('Observacoes e Condicoes', mg, y)
+    doc.text('Observações e Condições', mg, y)
     y += 5
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(7.5)
@@ -241,7 +244,7 @@ export function gerarPdf(dados: DadosPdf) {
   doc.setFontSize(7)
   doc.setTextColor(...cinzaCl)
   doc.text(
-    'Infoxtec Tecnologia e Servicos Ltda - CNPJ 04.309.223/0001-96 - Rua Silveira Martins, 27, Cabula, Salvador/BA',
+    'Infoxtec Tecnologia e Serviços Ltda - CNPJ 04.309.223/0001-96 - Rua Silveira Martins, 27, Cabula, Salvador/BA',
     mg,
     pH - 6
   )
