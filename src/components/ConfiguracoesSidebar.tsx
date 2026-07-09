@@ -157,12 +157,17 @@ export default function ConfiguracoesSidebar({ config, onAtualizar }: Props) {
         </div>
 
         {/* Desconto */}
-        <div style={rowStyle}>
+        <div style={{ ...rowStyle, borderBottom: '1px solid var(--border)' }}>
           <span className="text-[12px] text-[var(--text2)] flex-1">Desconto (%)</span>
           <div className="flex items-center gap-2">
             <Spinner valor={config.descPct} onChange={(v) => onAtualizar('descPct', v)} />
             <TogglePdf ativo={config.descNoPdf} onToggle={() => onAtualizar('descNoPdf', !config.descNoPdf)} />
           </div>
+        </div>
+        {/* Detalhamento no PDF (mostrar colunas Qtd/Valor Unit./Total) */}
+        <div style={rowStyle}>
+          <span className="text-[12px] text-[var(--text2)] flex-1">Detalhamento no PDF</span>
+          <TogglePdf ativo={config.detalhePdf} onToggle={() => onAtualizar('detalhePdf', !config.detalhePdf)} />
         </div>
       </div>
     </div>

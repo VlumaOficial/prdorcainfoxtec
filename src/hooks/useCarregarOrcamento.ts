@@ -76,6 +76,7 @@ export async function carregarOrcamento(id: string): Promise<OrcamentoCompleto |
     descPct: Number(orc.desconto_pct) || 0,
     impNoPdf: false,
     descNoPdf: false,
+    detalhePdf: false,
   }
 
   // Busca os produtos vinculados (para preservar o vinculo na edicao)

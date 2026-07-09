@@ -6,6 +6,7 @@ export interface ConfigGlobal {
   descPct: number
   impNoPdf: boolean
   descNoPdf: boolean
+  detalhePdf: boolean
 }
 
 export function useConfigGlobal() {
@@ -15,6 +16,7 @@ export function useConfigGlobal() {
     descPct: 0,
     impNoPdf: false,
     descNoPdf: false,
+    detalhePdf: false,
   })
 
   function atualizar<K extends keyof ConfigGlobal>(campo: K, valor: ConfigGlobal[K]) {
@@ -26,7 +28,7 @@ export function useConfigGlobal() {
   }
 
   function resetar() {
-    setConfig({ impPct: 0, margPct: 0, descPct: 0, impNoPdf: false, descNoPdf: false })
+    setConfig({ impPct: 0, margPct: 0, descPct: 0, impNoPdf: false, descNoPdf: false, detalhePdf: false })
   }
 
   return { config, atualizar, carregar, resetar }

@@ -40,6 +40,7 @@ export function gerarPdf(dados: DadosPdf) {
   // Toggles PDF: mostrar imposto / desconto no documento do cliente
   const showI = config.impNoPdf
   const showD = config.descNoPdf
+  const showDetalhe = config.detalhePdf
 
   const contatoLinha = [cabecalho.telefoneContato, cabecalho.emailContato].filter(Boolean).join('  .  ')
 
@@ -142,24 +143,35 @@ export function gerarPdf(dados: DadosPdf) {
     // Valor unitario real que FECHA a conta: total da linha / quantidade.
     // (o preco cheio ja embute a quantidade, entao dividimos para exibir o unitario)
     const valorUnitario = item.qtd > 0 ? r.total / item.qtd : r.total
-    rows.push([
-      rows.length + 1,
-      item.descricao || '--',
-      item.qtd.toLocaleString('pt-BR'),
-      fmtBR(valorUnitario),
-      fmtBR(r.total),
-    ])
+    if (showDetalhe) {
+      rows.push([
+        rows.length + 1,
+        item.descricao || '--',
+        item.qtd.toLocaleString('pt-BR'),
+        fmtBR(valorUnitario),
+        fmtBR(r.total),
+      ])
+    } else {
+      rows.push([rows.length + 1, item.descricao || '--'])
+    }
   }
 
-  const head = ['#', 'Descrição', 'Qtd', 'Valor Unit.', 'Total']
+  const head = showDetalhe
+    ? ['#', 'Descrição', 'Qtd', 'Valor Unit.', 'Total']
+    : ['#', 'Descrição']
 
-  const columnStyles: Record<number, Record<string, unknown>> = {
-    0: { halign: 'center', cellWidth: 8 },
-    1: { halign: 'left' },
-    2: { halign: 'center', cellWidth: 14 },
-    3: { halign: 'right', cellWidth: 30 },
-    4: { halign: 'right', cellWidth: 30, fontStyle: 'bold' },
-  }
+  const columnStyles: Record<number, Record<string, unknown>> = showDetalhe
+    ? {
+        0: { halign: 'center', cellWidth: 8 },
+        1: { halign: 'left' },
+        2: { halign: 'center', cellWidth: 14 },
+        3: { halign: 'right', cellWidth: 30 },
+        4: { halign: 'right', cellWidth: 30, fontStyle: 'bold' },
+      }
+    : {
+        0: { halign: 'center', cellWidth: 8 },
+        1: { halign: 'left' },
+      }
 
   autoTable(doc, {
     startY: y,
