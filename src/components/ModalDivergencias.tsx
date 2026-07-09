@@ -47,7 +47,7 @@ export default function ModalDivergencias({
         </h2>
         <p style={{ color: 'var(--text2)', fontSize: '13px', marginBottom: '18px' }}>
           Voce alterou dados que estao vinculados ao catalogo. Escolha se deseja atualizar os cadastros
-          ou manter as alteracoes apenas neste orcamento.
+          ou manter as alterações apenas neste orçamento.
         </p>
 
         <div className="flex flex-col gap-3 mb-6">
@@ -129,7 +129,7 @@ export default function ModalDivergencias({
               opacity: processando ? 0.6 : 1,
             }}
           >
-            Nao, so neste orcamento
+            Não, só neste orçamento
           </button>
         </div>
         <button

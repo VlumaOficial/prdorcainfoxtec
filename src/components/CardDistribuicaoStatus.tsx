@@ -25,7 +25,7 @@ export default function CardDistribuicaoStatus({ distribuicao, carregando }: Pro
       {carregando ? (
         <p className="text-[var(--text2)]">...</p>
       ) : total === 0 ? (
-        <p className="text-[var(--text2)] text-sm">Nenhum orcamento cadastrado ainda.</p>
+        <p className="text-[var(--text2)] text-sm">Nenhum orçamento cadastrado ainda.</p>
       ) : (
         <div className="flex flex-col gap-3">
           {STATUS_INFO.map((s) => {

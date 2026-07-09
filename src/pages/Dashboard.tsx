@@ -22,7 +22,7 @@ export default function Dashboard() {
   const sufixo = periodo.tudo ? 'no total' : 'no periodo'
 
   const cards = [
-    { label: `Orcamentos ${sufixo}`, valor: kpis ? String(kpis.orcamentosNoMes) : '—', cor: 'text-[var(--text)]' },
+    { label: `Orçamentos ${sufixo}`, valor: kpis ? String(kpis.orcamentosNoMes) : '—', cor: 'text-[var(--text)]' },
     { label: 'Valor total orcado', valor: kpis ? formatarMoeda(kpis.valorTotalOrcado) : '—', cor: 'text-[var(--blue)]' },
     { label: 'Taxa de conversao', valor: kpis && kpis.taxaConversao !== null ? `${kpis.taxaConversao.toFixed(1)}%` : '—', cor: 'text-[var(--purple)]' },
     { label: 'Lucro projetado', valor: kpis ? formatarMoeda(kpis.lucroProjetado) : '—', cor: kpis && kpis.lucroProjetado < 0 ? 'text-[var(--red)]' : 'text-[var(--green)]' },

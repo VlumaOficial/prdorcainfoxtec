@@ -197,7 +197,7 @@ export default function NovoOrcamento() {
     return (
       <Layout>
         <div className="flex items-center justify-center py-20 text-[var(--text2)]">
-          Carregando orcamento...
+          Carregando orçamento...
         </div>
       </Layout>
     )
@@ -250,7 +250,7 @@ export default function NovoOrcamento() {
           />
 
           <div style={sectionStyle}>
-            <SectionHeader color="g">Identificacao do Orcamento</SectionHeader>
+            <SectionHeader color="g">Identificação do Orçamento</SectionHeader>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
               <div className="flex flex-col gap-1">
@@ -411,7 +411,7 @@ export default function NovoOrcamento() {
           )}
           {salvoOk && !erro && (
             <span style={{ color: 'var(--green)', fontSize: '13px', fontWeight: 600 }}>
-              &#10003; Orcamento salvo com sucesso
+              &#10003; Orçamento salvo com sucesso
             </span>
           )}
 
@@ -467,7 +467,7 @@ export default function NovoOrcamento() {
                 border: 'none',
               }}
             >
-              {salvando ? 'Salvando...' : modoEdicao ? 'Salvar Alteracoes' : 'Salvar Orcamento'}
+              {salvando ? 'Salvando...' : modoEdicao ? 'Salvar Alterações' : 'Salvar Orçamento'}
             </button>
           )}
         </div>

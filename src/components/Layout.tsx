@@ -34,7 +34,7 @@ const menu = [
     ),
   },
   {
-    label: 'Orcamentos',
+    label: 'Orçamentos',
     path: '/orcamentos',
     icon: (
       <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">

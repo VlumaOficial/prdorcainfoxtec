@@ -178,7 +178,7 @@ export default function ProdutoCombobox({
                     }}
                     className="flex-1 bg-[var(--navy3)] text-[var(--text2)] text-xs rounded-md py-1.5 font-medium"
                   >
-                    Usar so neste orcamento
+                    Usar só neste orçamento
                   </button>
                 </div>
               </div>
