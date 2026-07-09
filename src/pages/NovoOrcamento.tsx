@@ -419,6 +419,22 @@ export default function NovoOrcamento() {
             <>
               <button
                 type="button"
+                onClick={handleGerarPdf}
+                style={{
+                  background: 'var(--blue)',
+                  color: '#fff',
+                  fontWeight: 600,
+                  fontSize: '14px',
+                  padding: '10px 20px',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  border: 'none',
+                }}
+              >
+                Gerar PDF
+              </button>
+              <button
+                type="button"
                 onClick={handleCriarNovo}
                 style={{
                   background: 'transparent',
