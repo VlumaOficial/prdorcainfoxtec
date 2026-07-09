@@ -164,10 +164,18 @@ export default function ConfiguracoesSidebar({ config, onAtualizar }: Props) {
             <TogglePdf ativo={config.descNoPdf} onToggle={() => onAtualizar('descNoPdf', !config.descNoPdf)} />
           </div>
         </div>
-        {/* Detalhamento no PDF (mostrar colunas Qtd/Valor Unit./Total) */}
+        {/* Colunas opcionais do PDF (Descricao e Total a Pagar sempre aparecem) */}
+        <div style={{ ...rowStyle, borderBottom: '1px solid var(--border)' }}>
+          <span className="text-[12px] text-[var(--text2)] flex-1">Quantidade no PDF</span>
+          <TogglePdf ativo={config.qtdPdf} onToggle={() => onAtualizar('qtdPdf', !config.qtdPdf)} />
+        </div>
+        <div style={{ ...rowStyle, borderBottom: '1px solid var(--border)' }}>
+          <span className="text-[12px] text-[var(--text2)] flex-1">Valor unitario no PDF</span>
+          <TogglePdf ativo={config.valorUnitPdf} onToggle={() => onAtualizar('valorUnitPdf', !config.valorUnitPdf)} />
+        </div>
         <div style={rowStyle}>
-          <span className="text-[12px] text-[var(--text2)] flex-1">Detalhamento no PDF</span>
-          <TogglePdf ativo={config.detalhePdf} onToggle={() => onAtualizar('detalhePdf', !config.detalhePdf)} />
+          <span className="text-[12px] text-[var(--text2)] flex-1">Total por item no PDF</span>
+          <TogglePdf ativo={config.totalLinhaPdf} onToggle={() => onAtualizar('totalLinhaPdf', !config.totalLinhaPdf)} />
         </div>
       </div>
     </div>

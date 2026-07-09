@@ -40,7 +40,9 @@ export function gerarPdf(dados: DadosPdf) {
   // Toggles PDF: mostrar imposto / desconto no documento do cliente
   const showI = config.impNoPdf
   const showD = config.descNoPdf
-  const showDetalhe = config.detalhePdf
+  const showQtd = config.qtdPdf
+  const showValorUnit = config.valorUnitPdf
+  const showTotalLinha = config.totalLinhaPdf
 
   const contatoLinha = [cabecalho.telefoneContato, cabecalho.emailContato].filter(Boolean).join('  .  ')
 
@@ -143,35 +145,36 @@ export function gerarPdf(dados: DadosPdf) {
     // Valor unitario real que FECHA a conta: total da linha / quantidade.
     // (o preco cheio ja embute a quantidade, entao dividimos para exibir o unitario)
     const valorUnitario = item.qtd > 0 ? r.total / item.qtd : r.total
-    if (showDetalhe) {
-      rows.push([
-        rows.length + 1,
-        item.descricao || '--',
-        item.qtd.toLocaleString('pt-BR'),
-        fmtBR(valorUnitario),
-        fmtBR(r.total),
-      ])
-    } else {
-      rows.push([rows.length + 1, item.descricao || '--'])
-    }
+    const linha: (string | number)[] = [rows.length + 1, item.descricao || '--']
+    if (showQtd) linha.push(item.qtd.toLocaleString('pt-BR'))
+    if (showValorUnit) linha.push(fmtBR(valorUnitario))
+    if (showTotalLinha) linha.push(fmtBR(r.total))
+    rows.push(linha)
   }
 
-  const head = showDetalhe
-    ? ['#', 'Descrição', 'Qtd', 'Valor Unit.', 'Total']
-    : ['#', 'Descrição']
+  const head: string[] = ['#', 'Descrição']
+  if (showQtd) head.push('Qtd')
+  if (showValorUnit) head.push('Valor Unit.')
+  if (showTotalLinha) head.push('Total')
 
-  const columnStyles: Record<number, Record<string, unknown>> = showDetalhe
-    ? {
-        0: { halign: 'center', cellWidth: 8 },
-        1: { halign: 'left' },
-        2: { halign: 'center', cellWidth: 14 },
-        3: { halign: 'right', cellWidth: 30 },
-        4: { halign: 'right', cellWidth: 30, fontStyle: 'bold' },
-      }
-    : {
-        0: { halign: 'center', cellWidth: 8 },
-        1: { halign: 'left' },
-      }
+  // columnStyles dinamico: # e Descricao fixos; demais colunas conforme a ordem ativa.
+  const columnStyles: Record<number, Record<string, unknown>> = {
+    0: { halign: 'center', cellWidth: 8 },
+    1: { halign: 'left' },
+  }
+  let colIdx = 2
+  if (showQtd) {
+    columnStyles[colIdx] = { halign: 'center', cellWidth: 16 }
+    colIdx++
+  }
+  if (showValorUnit) {
+    columnStyles[colIdx] = { halign: 'right', cellWidth: 32 }
+    colIdx++
+  }
+  if (showTotalLinha) {
+    columnStyles[colIdx] = { halign: 'right', cellWidth: 32, fontStyle: 'bold' }
+    colIdx++
+  }
 
   autoTable(doc, {
     startY: y,
