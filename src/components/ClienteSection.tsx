@@ -131,14 +131,14 @@ export default function ClienteSection({
 
         <div className="sm:col-span-2 flex flex-col gap-1">
           <label className="text-[10px] font-semibold uppercase tracking-wide text-[var(--text3)]">
-            Endereco
+            Endereço
           </label>
           <input
             type="text"
             value={endereco}
             onChange={(e) => onChange('endereco', e.target.value)}
             readOnly={bloqueado}
-            placeholder="Rua, numero, bairro, cidade - UF"
+            placeholder="Rua, número, bairro, cidade - UF"
             style={{ ...inputStyle, opacity: bloqueado ? 0.7 : 1 }}
             className="px-[11px] py-2 text-[var(--text)] outline-none focus:border-[var(--green)] w-full"
           />
@@ -153,7 +153,7 @@ export default function ClienteSection({
             value={responsavel}
             onChange={(e) => onChange('responsavel', e.target.value)}
             readOnly={bloqueado}
-            placeholder="Nome do responsavel"
+            placeholder="Nome do responsável"
             style={{ ...inputStyle, opacity: bloqueado ? 0.7 : 1 }}
             className="px-[11px] py-2 text-[var(--text)] outline-none focus:border-[var(--green)] w-full"
           />

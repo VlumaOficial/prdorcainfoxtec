@@ -301,7 +301,7 @@ export default function NovoOrcamento() {
                 type="text"
                 value={cabecalho.titulo}
                 onChange={(e) => atualizarCampo('titulo', e.target.value)}
-                placeholder="Ex: Instalacao de sistema de monitoramento"
+                placeholder="Ex: Instalação de sistema de monitoramento"
                 style={inputStyle}
                 className="px-[11px] py-2 text-[var(--text)] outline-none focus:border-[var(--green)] w-full"
               />
@@ -327,7 +327,7 @@ export default function NovoOrcamento() {
           </div>
 
           <div style={sectionStyle}>
-            <SectionHeader color="g">Observacoes e Condicoes</SectionHeader>
+            <SectionHeader color="g">Observações e Condições</SectionHeader>
 
             <div className="flex flex-col gap-1 mb-3">
               <label className="text-[10px] font-semibold uppercase tracking-wide text-[var(--text3)]">
@@ -337,7 +337,7 @@ export default function NovoOrcamento() {
                 type="text"
                 value={cabecalho.condicoesPagamento}
                 onChange={(e) => atualizarCampo('condicoesPagamento', e.target.value)}
-                placeholder="50 por cento na aprovacao, 50 por cento na entrega"
+                placeholder="50 por cento na aprovação, 50 por cento na entrega"
                 style={inputStyle}
                 className="px-[11px] py-2 text-[var(--text)] outline-none focus:border-[var(--green)] w-full"
               />
@@ -345,7 +345,7 @@ export default function NovoOrcamento() {
 
             <div className="flex flex-col gap-1">
               <label className="text-[10px] font-semibold uppercase tracking-wide text-[var(--text3)]">
-                Observacoes gerais
+                Observações gerais
               </label>
               <textarea
                 value={cabecalho.observacoesGerais}

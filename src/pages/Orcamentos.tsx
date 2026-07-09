@@ -59,7 +59,7 @@ export default function Orcamentos() {
   }, [orcamentos, busca, filtro])
 
   async function handleExcluir(id: string, numero: string) {
-    if (confirm(`Excluir o orcamento ${numero}? Esta acao nao pode ser desfeita.`)) {
+    if (confirm(`Excluir o orçamento ${numero}? Esta ação não pode ser desfeita.`)) {
       try {
         await excluir(id)
       } catch (e) {
@@ -72,16 +72,16 @@ export default function Orcamentos() {
     <Layout>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
-          <h1 className="text-[var(--text)] text-2xl font-semibold mb-1">Orcamentos</h1>
+          <h1 className="text-[var(--text)] text-2xl font-semibold mb-1">Orçamentos</h1>
           <p className="text-[var(--text2)] text-sm">
-            {orcamentos.length} orcamento{orcamentos.length !== 1 ? 's' : ''}
+            {orcamentos.length} orçamento{orcamentos.length !== 1 ? 's' : ''}
           </p>
         </div>
         <button
           onClick={() => navigate('/orcamentos/novo')}
           className="bg-gradient-to-br from-[var(--green-dark)] to-[var(--green)] text-white rounded-md px-4 py-2.5 font-semibold text-sm whitespace-nowrap"
         >
-          + Novo Orcamento
+          + Novo Orçamento
         </button>
       </div>
 
@@ -129,7 +129,7 @@ export default function Orcamentos() {
             )}
             {!carregando && filtrados.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-6 text-center text-[var(--text2)]">Nenhum orcamento encontrado</td>
+                <td colSpan={7} className="px-4 py-6 text-center text-[var(--text2)]">Nenhum orçamento encontrado</td>
               </tr>
             )}
             {filtrados.map((o) => (
@@ -164,7 +164,7 @@ export default function Orcamentos() {
       <div className="md:hidden flex flex-col gap-3">
         {carregando && <p className="text-center text-[var(--text2)] py-6">Carregando...</p>}
         {!carregando && filtrados.length === 0 && (
-          <p className="text-center text-[var(--text2)] py-6">Nenhum orcamento encontrado</p>
+          <p className="text-center text-[var(--text2)] py-6">Nenhum orçamento encontrado</p>
         )}
         {filtrados.map((o) => (
           <div key={o.id} className="bg-[var(--navy2)] border border-[var(--border)] rounded-xl p-4">

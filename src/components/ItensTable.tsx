@@ -139,7 +139,7 @@ export default function ItensTable({
           <thead>
             <tr style={{ background: 'var(--navy3)' }}>
               <th style={thL}>#</th>
-              <th style={{ ...thL, minWidth: '150px', width: '30%' }}>Descricao</th>
+              <th style={{ ...thL, minWidth: '150px', width: '30%' }}>Descrição</th>
               <th style={thC}>Qtd</th>
               <th style={thL}>Custo Unit.</th>
               <th style={thC}>Imp-Marg-Desc</th>

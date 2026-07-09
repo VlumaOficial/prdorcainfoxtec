@@ -142,7 +142,7 @@ export default function ClienteCombobox({
           {naoEncontrou && (
             <div className="p-3">
               <p className="text-[var(--text2)] text-xs mb-2">
-                "{valorBusca}" nao esta no catalogo.
+                "{valorBusca}" não está no catálogo.
               </p>
               <div className="flex gap-2">
                 <button

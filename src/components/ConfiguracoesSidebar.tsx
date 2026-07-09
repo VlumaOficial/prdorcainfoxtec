@@ -137,7 +137,7 @@ export default function ConfiguracoesSidebar({ config, onAtualizar }: Props) {
   return (
     <div>
       <h2 className="text-[var(--text3)] text-[10px] font-bold uppercase tracking-widest mb-3">
-        Configuracoes
+        Configurações
       </h2>
 
       <div style={blockStyle}>
