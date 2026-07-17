@@ -213,6 +213,7 @@ export function gerarPdf(dados: DadosPdf) {
   if (y + alturaFechamento > limiteInferior) {
     doc.addPage()
     y = 20
+    console.log('[PDF DEBUG] addPage chamado! Paginas agora:', (doc.internal as unknown as { getNumberOfPages: () => number }).getNumberOfPages(), '| novo y:', y)
   }
 
   // ── DESCONTO (se toggle e houver) ──
