@@ -298,22 +298,26 @@ export function gerarPdf(dados: DadosPdf) {
   // Tenta caber tudo (tabela + fechamento) em 1 pagina, reduzindo a fonte por degraus.
   // Se nem na menor fonte couber, usa a menor e deixa o autoTable paginar (respeitando
   // a margem inferior, entao nunca sobrepoe o rodape).
-  const fontesTentativa = [8, 7.5, 7, 6.5, 6]
-  const yAposCabecalho = 91 // altura fixa aproximada do cabecalho (header+titulo+partes)
-  const areaUtilInferior = PAGE_H - MARGEM_INFERIOR
-
-  // Estima altura de uma linha da tabela conforme a fonte (padding + texto).
-  function alturaLinhaTabela(fonte: number): number {
-    return fonte * 0.5 + 6 // cellPadding 3 top+bottom + texto
+  // Auto-fit: tenta caber tudo em 1 pagina reduzindo FONTE e PADDING juntos.
+  const combos: [number, number][] = [[8, 3], [7.5, 2.5], [7, 2], [7, 1.5], [6.5, 1.5], [6, 1.2]]
+  // Altura real do cabecalho: base 114 + linhas extras do titulo se ele quebrar.
+  let yAposCabecalho = 114
+  if (cabecalho.titulo) {
+    const titLines = doc.splitTextToSize(cabecalho.titulo, PAGE_W - MG * 2)
+    const nLinhas = Array.isArray(titLines) ? titLines.length : 1
+    if (nLinhas > 1) yAposCabecalho += (nLinhas - 1) * 6
   }
-
+  const areaUtilInferior = PAGE_H - MARGEM_INFERIOR
   let fonteEscolhida = 6
-  for (const f of fontesTentativa) {
-    const alturaTabela = (rows.length + 1) * alturaLinhaTabela(f) // +1 do header
+  let padEscolhido = 1.2
+  for (const [f, pad] of combos) {
+    const alturaLinha = f * 0.5 + pad * 2 + 1
+    const alturaTabela = (rows.length + 1) * alturaLinha
     const alturaFech = alturaFechamento(f)
     const totalNecessario = yAposCabecalho + alturaTabela + 6 + alturaFech
     if (totalNecessario <= areaUtilInferior) {
       fonteEscolhida = f
+      padEscolhido = pad
       break
     }
   }
@@ -330,10 +334,7 @@ export function gerarPdf(dados: DadosPdf) {
     columnStyles: montarColumnStyles() as never,
     bodyStyles: { fontSize: fonteEscolhida, textColor: NAVY },
     alternateRowStyles: { fillColor: [245, 248, 252] },
-    styles: { cellPadding: 3, lineColor: CINZA_CL, lineWidth: 0.1 },
-    didDrawPage: () => {
-      desenharRodape()
-    },
+    styles: { cellPadding: padEscolhido, lineColor: CINZA_CL, lineWidth: 0.1 },
   })
 
   yTabela = ((doc as DocComAutoTable).lastAutoTable?.finalY || yTabela) + 6
@@ -342,10 +343,16 @@ export function gerarPdf(dados: DadosPdf) {
   const alturaFech = alturaFechamento(fonteEscolhida)
   if (yTabela + alturaFech > areaUtilInferior) {
     doc.addPage()
-    desenharRodape() // a nova pagina precisa do rodape (didDrawPage nao dispara aqui)
     yTabela = 20
   }
   desenharFechamento(yTabela, fonteEscolhida)
+
+  // Rodape unico por pagina, desenhado no final (evita duplicacao)
+  const totalPag = (doc.internal as unknown as { getNumberOfPages: () => number }).getNumberOfPages()
+  for (let p = 1; p <= totalPag; p++) {
+    doc.setPage(p)
+    desenharRodape()
+  }
 
   doc.save('orcamento-' + (cabecalho.numero || 'infoxtec') + '.pdf')
 }
