@@ -209,6 +209,7 @@ export function gerarPdf(dados: DadosPdf) {
   }
   const alturaFechamento = alturaResumo + alturaBoxTotal + alturaObs
   const limiteInferior = 297 - alturaRodape
+  console.log('[PDF DEBUG] y apos tabela:', y, '| alturaFechamento:', alturaFechamento, '| limite:', limiteInferior, '| vai quebrar?', (y + alturaFechamento > limiteInferior))
   if (y + alturaFechamento > limiteInferior) {
     doc.addPage()
     y = 20
