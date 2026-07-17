@@ -159,7 +159,7 @@ export function gerarPdf(dados: DadosPdf) {
 
   // columnStyles dinamico: # e Descricao fixos; demais colunas conforme a ordem ativa.
   const columnStyles: Record<number, Record<string, unknown>> = {
-    0: { halign: 'center', cellWidth: 8 },
+    0: { halign: 'center', cellWidth: 12 },
     1: { halign: 'left' },
   }
   let colIdx = 2
@@ -189,6 +189,30 @@ export function gerarPdf(dados: DadosPdf) {
   })
 
   y = ((doc as DocComAutoTable).lastAutoTable?.finalY || y) + 5
+
+  // ── QUEBRA INTELIGENTE: garante que o bloco de fechamento (resumo + total +
+  // observacoes) nunca fique orfao. Se nao couber no espaco restante da pagina,
+  // adiciona uma nova pagina e desenha o bloco inteiro nela. ──
+  const alturaRodape = 18
+  // Estima a altura do bloco de fechamento conforme o que sera desenhado:
+  let alturaResumo = 0
+  if ((showD && tDescPDF > 0)) alturaResumo += 14
+  if (showI && tImpPDF > 0) alturaResumo += 8
+  const alturaBoxTotal = 19
+  let alturaObs = 0
+  if (cabecalho.condicoesPagamento || cabecalho.observacoesGerais) {
+    alturaObs = 12
+    if (cabecalho.observacoesGerais) {
+      const linhasObs = doc.splitTextToSize(cabecalho.observacoesGerais, W - mg * 2 - 90 - 10)
+      alturaObs += (Array.isArray(linhasObs) ? linhasObs.length : 1) * 4
+    }
+  }
+  const alturaFechamento = alturaResumo + alturaBoxTotal + alturaObs
+  const limiteInferior = 297 - alturaRodape
+  if (y + alturaFechamento > limiteInferior) {
+    doc.addPage()
+    y = 20
+  }
 
   // ── DESCONTO (se toggle e houver) ──
   const bw = 90
@@ -251,20 +275,27 @@ export function gerarPdf(dados: DadosPdf) {
     }
   }
 
-  // ── RODAPE ──
+  // ── RODAPE em TODAS as paginas ──
   const pH = 297
-  doc.setFillColor(...navy)
-  doc.rect(0, pH - 14, W, 14, 'F')
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(7)
-  doc.setTextColor(...cinzaCl)
-  doc.text(
-    'Infoxtec Tecnologia e Serviços Ltda - CNPJ 04.309.223/0001-96 - Rua Silveira Martins, 27, Cabula, Salvador/BA',
-    mg,
-    pH - 6
-  )
-  doc.setTextColor(...green)
-  doc.text('infoxtec.com.br', W - mg, pH - 6, { align: 'right' })
-
+  const totalPaginas = (doc.internal as unknown as { getNumberOfPages: () => number }).getNumberOfPages()
+  for (let p = 1; p <= totalPaginas; p++) {
+    doc.setPage(p)
+    doc.setFillColor(...navy)
+    doc.rect(0, pH - 14, W, 14, 'F')
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(7)
+    doc.setTextColor(...cinzaCl)
+    doc.text(
+      'Infoxtec Tecnologia e Serviços Ltda - CNPJ 04.309.223/0001-96 - Rua Silveira Martins, 27, Cabula, Salvador/BA',
+      mg,
+      pH - 6
+    )
+    doc.setTextColor(...green)
+    doc.text('infoxtec.com.br', W - mg, pH - 6, { align: 'right' })
+    if (totalPaginas > 1) {
+      doc.setTextColor(...cinzaCl)
+      doc.text('Pagina ' + p + '/' + totalPaginas, W / 2, pH - 6, { align: 'center' })
+    }
+  }
   doc.save('orcamento-' + (cabecalho.numero || 'infoxtec') + '.pdf')
 }
