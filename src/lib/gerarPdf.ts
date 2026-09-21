@@ -12,6 +12,7 @@ interface DadosPdf {
   itens: ItemOrcamento[]
   config: ConfigGlobal
   logoBase64?: string
+  tipoDocumento?: 'ORÇAMENTO' | 'PEDIDO'
 }
 
 function fmtData(iso: string): string {
@@ -37,7 +38,7 @@ const CINZA: [number, number, number] = [90, 100, 115]
 const CINZA_CL: [number, number, number] = [200, 210, 225]
 
 export function gerarPdf(dados: DadosPdf) {
-  const { cabecalho, cliente, itens, config, logoBase64 } = dados
+  const { cabecalho, cliente, itens, config, logoBase64, tipoDocumento = 'ORÇAMENTO' } = dados
 
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
 
@@ -113,7 +114,7 @@ export function gerarPdf(dados: DadosPdf) {
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(11)
     doc.setTextColor(...GREEN)
-    doc.text('ORÇAMENTO', PAGE_W - MG, 18, { align: 'right' })
+    doc.text(tipoDocumento, PAGE_W - MG, 18, { align: 'right' })
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(8)
     doc.setTextColor(...CINZA_CL)
@@ -354,5 +355,6 @@ export function gerarPdf(dados: DadosPdf) {
     desenharRodape()
   }
 
-  doc.save('orcamento-' + (cabecalho.numero || 'infoxtec') + '.pdf')
+  const prefixoArquivo = tipoDocumento === 'PEDIDO' ? 'pedido-' : 'orcamento-'
+  doc.save(prefixoArquivo + (cabecalho.numero || 'infoxtec') + '.pdf')
 }

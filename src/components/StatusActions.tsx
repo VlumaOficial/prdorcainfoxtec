@@ -1,11 +1,12 @@
 import type { CSSProperties } from 'react'
 
-type Status = 'rascunho' | 'enviado' | 'aprovado' | 'recusado' | 'expirado'
+type Status = 'rascunho' | 'enviado' | 'aprovado' | 'recusado' | 'expirado' | 'cancelado'
 
 interface Props {
   status: Status
   desabilitado?: boolean
   onMudar: (novo: Status) => void
+  onCancelar?: () => void
 }
 
 const STATUS_LABEL: Record<Status, string> = {
@@ -14,6 +15,7 @@ const STATUS_LABEL: Record<Status, string> = {
   aprovado: 'Aprovado',
   recusado: 'Recusado',
   expirado: 'Expirado',
+  cancelado: 'Cancelado',
 }
 
 const STATUS_COR: Record<Status, string> = {
@@ -22,6 +24,7 @@ const STATUS_COR: Record<Status, string> = {
   aprovado: 'var(--green)',
   recusado: 'var(--red)',
   expirado: 'var(--amber)',
+  cancelado: 'var(--red)',
 }
 
 function botao(cor: string, contorno = false): CSSProperties {
@@ -38,7 +41,7 @@ function botao(cor: string, contorno = false): CSSProperties {
   }
 }
 
-export default function StatusActions({ status, desabilitado, onMudar }: Props) {
+export default function StatusActions({ status, desabilitado, onMudar, onCancelar }: Props) {
   return (
     <div className="flex items-center flex-wrap gap-2">
       <span className="text-[var(--text3)] text-xs uppercase tracking-wide">Status:</span>
@@ -77,8 +80,15 @@ export default function StatusActions({ status, desabilitado, onMudar }: Props) 
         </button>
       )}
 
-      {/* Reversao discreta para Rascunho, disponivel em qualquer status != rascunho */}
-      {status !== 'rascunho' && (
+      {/* Aprovado pode ser cancelado (cascateia para os pedidos vinculados, ver docs/PEDIDOS.md) */}
+      {status === 'aprovado' && onCancelar && (
+        <button type="button" disabled={desabilitado} style={botao('var(--red)')} onClick={onCancelar}>
+          Cancelar Orçamento
+        </button>
+      )}
+
+      {/* Reversao discreta para Rascunho, disponivel em qualquer status != rascunho/cancelado */}
+      {status !== 'rascunho' && status !== 'cancelado' && (
         <button type="button" disabled={desabilitado} style={botao('', true)} onClick={() => onMudar('rascunho')}>
           Reverter para Rascunho
         </button>

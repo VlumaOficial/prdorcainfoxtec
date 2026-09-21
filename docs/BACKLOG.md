@@ -4,6 +4,14 @@ Itens identificados mas adiados deliberadamente, com a fase em que devem ser ret
 
 ## Em hold
 
+### Modulo de Pedidos (orcamento aprovado -> pedido)
+- **Quando retomar:** codigo implementado; falta aplicar a migration no Supabase real e testar
+  end-to-end
+- **Especificacao completa:** [docs/PEDIDOS.md](PEDIDOS.md)
+- **Resumo:** orcamento aprovado gera pedido(s) vinculados (1:N, suporta parcial), com
+  numeracao derivada (PED-AAAA-NNN-XX), maquina de estados propria (Em Execucao / Entregue /
+  Faturado / Cancelado) e cancelamento em cascata ajustado para multiplos pedidos por orcamento
+
 ### Card de distribuição de status no Dashboard
 - **Quando retomar:** F6, depois da F5 (Gerar Orçamento) estar pronta
 - **Motivo do hold:** sem orçamentos reais cadastrados, o card ficaria zerado e não validaria o design (largura 2 colunas, formato de barras, cores por status)

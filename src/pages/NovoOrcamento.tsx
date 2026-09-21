@@ -14,9 +14,11 @@ import { useSalvarOrcamento } from '../hooks/useSalvarOrcamento'
 import { carregarOrcamento } from '../hooks/useCarregarOrcamento'
 import StatusActions from '../components/StatusActions'
 import ModalDivergencias from '../components/ModalDivergencias'
+import SelecaoItensPedido from '../components/SelecaoItensPedido'
 import { detectarDivergencias } from '../lib/detectarDivergencias'
 import type { Divergencia } from '../lib/detectarDivergencias'
 import { gerarPdf } from '../lib/gerarPdf'
+import { supabase } from '../lib/supabase'
 import logoInfoxtec from '../assets/infoxtec-logo.jpeg'
 
 const sectionStyle: CSSProperties = {
@@ -129,7 +131,28 @@ export default function NovoOrcamento() {
   async function handleMudarStatus(novo: string) {
     if (!orcamentoId) return
     const ok = await mudarStatus(orcamentoId, novo)
-    if (ok) setStatusAtual(novo)
+    if (ok) {
+      setStatusAtual(novo)
+      // Ao aprovar, abre direto a selecao de itens para gerar o primeiro pedido
+      if (novo === 'aprovado') setSelecaoPedidoAberta(true)
+    }
+  }
+
+  async function handleCancelarOrcamento() {
+    if (!orcamentoId) return
+    if (!confirm('Cancelar este orçamento? Pedidos vinculados ainda não faturados também serão cancelados.')) return
+    if (await cancelarOrcamento(orcamentoId)) setStatusAtual('cancelado')
+  }
+
+  async function verificarItensDisponiveis() {
+    if (!orcamentoId) return
+    const { data } = await supabase.rpc('itens_disponiveis_orcamento', { p_orcamento_id: orcamentoId })
+    setItensDisponiveis((data || []).length)
+  }
+
+  function handlePedidoCriado(pedidoId: string) {
+    setSelecaoPedidoAberta(false)
+    navigate('/pedidos/' + pedidoId)
   }
 
   async function handleGerarPdf() {
@@ -167,13 +190,15 @@ export default function NovoOrcamento() {
 
   const itensState = useItensOrcamento()
   const configState = useConfigGlobal()
-  const { salvar, atualizar, mudarStatus, atualizarCatalogo, salvando, erro } = useSalvarOrcamento()
+  const { salvar, atualizar, mudarStatus, cancelarOrcamento, atualizarCatalogo, salvando, erro } = useSalvarOrcamento()
   const [salvoOk, setSalvoOk] = useState(false)
   const [mostrarPosSalvar, setMostrarPosSalvar] = useState(false)
   const [divergencias, setDivergencias] = useState<Divergencia[]>([])
   const [modalAberto, setModalAberto] = useState(false)
   const [statusAtual, setStatusAtual] = useState<string>('rascunho')
   const [carregandoEdicao, setCarregandoEdicao] = useState(modoEdicao)
+  const [selecaoPedidoAberta, setSelecaoPedidoAberta] = useState(false)
+  const [itensDisponiveis, setItensDisponiveis] = useState(0)
 
   useEffect(() => {
     if (!orcamentoId) return
@@ -193,6 +218,13 @@ export default function NovoOrcamento() {
     return () => { ativo = false }
   }, [orcamentoId])
 
+  // Enquanto o orcamento estiver aprovado, verifica se ha itens sem pedido vinculado
+  // (mostra o botao "Novo Pedido (itens restantes)" quando houver).
+  useEffect(() => {
+    if (orcamentoId && statusAtual === 'aprovado') verificarItensDisponiveis()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orcamentoId, statusAtual, selecaoPedidoAberta])
+
   if (carregandoEdicao) {
     return (
       <Layout>
@@ -208,17 +240,30 @@ export default function NovoOrcamento() {
       {modoEdicao && (
         <div className="mb-4 p-3 rounded-lg flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3" style={{ background: 'var(--navy2)', border: '1px solid var(--border)' }}>
           <StatusActions
-            status={statusAtual as 'rascunho' | 'enviado' | 'aprovado' | 'recusado' | 'expirado'}
+            status={statusAtual as 'rascunho' | 'enviado' | 'aprovado' | 'recusado' | 'expirado' | 'cancelado'}
             desabilitado={salvando}
             onMudar={handleMudarStatus}
+            onCancelar={handleCancelarOrcamento}
           />
-          <button
-            type="button"
-            onClick={handleGerarPdf}
-            className="bg-gradient-to-br from-[var(--green-dark)] to-[var(--green)] text-white rounded-md px-4 py-2 font-semibold text-sm whitespace-nowrap"
-          >
-            Gerar PDF
-          </button>
+          <div className="flex items-center gap-2">
+            {statusAtual === 'aprovado' && itensDisponiveis > 0 && (
+              <button
+                type="button"
+                onClick={() => setSelecaoPedidoAberta(true)}
+                className="rounded-md px-4 py-2 font-semibold text-sm whitespace-nowrap"
+                style={{ background: 'transparent', color: 'var(--blue)', border: '1px solid var(--blue)' }}
+              >
+                Novo Pedido (itens restantes)
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={handleGerarPdf}
+              className="bg-gradient-to-br from-[var(--green-dark)] to-[var(--green)] text-white rounded-md px-4 py-2 font-semibold text-sm whitespace-nowrap"
+            >
+              Gerar PDF
+            </button>
+          </div>
         </div>
       )}
       <EmitCard
@@ -496,6 +541,14 @@ export default function NovoOrcamento() {
           onAtualizarCatalogo={handleModalAtualizarCatalogo}
           onSoNesteOrcamento={handleModalSoNesteOrcamento}
           onCancelar={() => setModalAberto(false)}
+        />
+      )}
+
+      {selecaoPedidoAberta && orcamentoId && (
+        <SelecaoItensPedido
+          orcamentoId={orcamentoId}
+          onCriado={handlePedidoCriado}
+          onCancelar={() => setSelecaoPedidoAberta(false)}
         />
       )}
     </Layout>

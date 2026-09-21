@@ -234,6 +234,25 @@ export function useSalvarOrcamento() {
     }
   }
 
+  // Cancela o orcamento (RPC): bloqueado no banco se houver pedido ja faturado vinculado.
+  async function cancelarOrcamento(id: string): Promise<boolean> {
+    setSalvando(true)
+    setErro(null)
+    try {
+      const { error } = await supabase.rpc('cancelar_orcamento', { p_id: id })
+      if (error) {
+        setErro(error.message)
+        return false
+      }
+      return true
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : 'Erro inesperado ao cancelar o orcamento.')
+      return false
+    } finally {
+      setSalvando(false)
+    }
+  }
+
   // Aplica as divergencias ao catalogo (UPDATE em produtos/clientes)
   async function atualizarCatalogo(divergencias: Divergencia[]): Promise<boolean> {
     try {
@@ -265,5 +284,5 @@ export function useSalvarOrcamento() {
     }
   }
 
-  return { salvar, atualizar, mudarStatus, atualizarCatalogo, salvando, erro }
+  return { salvar, atualizar, mudarStatus, cancelarOrcamento, atualizarCatalogo, salvando, erro }
 }

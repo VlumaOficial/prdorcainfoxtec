@@ -6,6 +6,8 @@ import Clientes from './pages/Clientes'
 import Produtos from './pages/Produtos'
 import Orcamentos from './pages/Orcamentos'
 import NovoOrcamento from './pages/NovoOrcamento'
+import Pedidos from './pages/Pedidos'
+import Pedido from './pages/Pedido'
 
 function RotaProtegida({ children }: { children: React.ReactNode }) {
   const { autenticado, carregando } = useAuth()
@@ -100,6 +102,22 @@ function App() {
           element={
             <RotaProtegida>
               <NovoOrcamento />
+            </RotaProtegida>
+          }
+        />
+        <Route
+          path="/pedidos"
+          element={
+            <RotaProtegida>
+              <Pedidos />
+            </RotaProtegida>
+          }
+        />
+        <Route
+          path="/pedidos/:id"
+          element={
+            <RotaProtegida>
+              <Pedido />
             </RotaProtegida>
           }
         />

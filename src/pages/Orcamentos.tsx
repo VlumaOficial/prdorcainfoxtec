@@ -13,6 +13,7 @@ const STATUS_INFO: Record<StatusOrcamento, { label: string; cor: string; bg: str
   aprovado: { label: 'Aprovado', cor: 'var(--green)', bg: 'var(--green-dim)' },
   recusado: { label: 'Recusado', cor: 'var(--red)', bg: 'var(--red-dim)' },
   expirado: { label: 'Expirado', cor: 'var(--amber)', bg: 'rgba(245,158,11,.12)' },
+  cancelado: { label: 'Cancelado', cor: 'var(--red)', bg: 'var(--red-dim)' },
 }
 
 function StatusBadge({ status }: { status: StatusOrcamento }) {
@@ -104,6 +105,7 @@ export default function Orcamentos() {
           <option value="aprovado">Aprovado</option>
           <option value="recusado">Recusado</option>
           <option value="expirado">Expirado</option>
+          <option value="cancelado">Cancelado</option>
         </select>
       </div>
 

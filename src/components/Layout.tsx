@@ -42,6 +42,15 @@ const menu = [
       </svg>
     ),
   },
+  {
+    label: 'Pedidos',
+    path: '/pedidos',
+    icon: (
+      <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4m4-8.5L8 5.5" />
+      </svg>
+    ),
+  },
 ]
 
 export default function Layout({ children }: { children: ReactNode }) {
@@ -49,18 +58,19 @@ export default function Layout({ children }: { children: ReactNode }) {
   const location = useLocation()
   const [menuAberto, setMenuAberto] = useState(false)
 
-  // Colapso so e permitido na tela de Orcamento
-  const emOrcamento = location.pathname.startsWith('/orcamentos')
+  // Colapso e permitido em qualquer secao de listagem densa (qualquer item do menu
+  // exceto o Dashboard, que fica na raiz "/").
+  const emSecaoColapsavel = menu.some((item) => item.path !== '/' && location.pathname.startsWith(item.path))
 
-  // Estado de colapso. Ao entrar em Orcamento, colapsa automaticamente.
-  const [colapsada, setColapsada] = useState<boolean>(emOrcamento)
+  // Estado de colapso. Ao entrar numa secao colapsavel, colapsa automaticamente.
+  const [colapsada, setColapsada] = useState<boolean>(emSecaoColapsavel)
 
-  // Sempre que a rota mudar para Orcamento, colapsa; ao sair, expande.
+  // Sempre que a rota mudar de/para uma secao colapsavel, ajusta o colapso.
   useEffect(() => {
-    setColapsada(emOrcamento)
-  }, [emOrcamento])
+    setColapsada(emSecaoColapsavel)
+  }, [emSecaoColapsavel])
 
-  const efetivamenteColapsada = colapsada && emOrcamento
+  const efetivamenteColapsada = colapsada && emSecaoColapsavel
 
   async function handleLogout() {
     await supabase.auth.signOut()
@@ -88,7 +98,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       >
         <div className={"flex items-center mb-6 " + (efetivamenteColapsada ? "justify-center" : "justify-between")}>
           {!efetivamenteColapsada && <img src={logo} alt="Infoxtec" className="h-8 w-fit rounded" />}
-          {emOrcamento && (
+          {emSecaoColapsavel && (
           <button
             type="button"
             onClick={() => setColapsada(!colapsada)}
@@ -104,7 +114,7 @@ export default function Layout({ children }: { children: ReactNode }) {
 
         <nav className="flex flex-col gap-1 flex-1">
           {menu.map((item) => {
-            const ativo = location.pathname === item.path || (item.path.startsWith('/orcamentos') && location.pathname.startsWith('/orcamentos'))
+            const ativo = item.path === '/' ? location.pathname === '/' : location.pathname.startsWith(item.path)
             const classeBase = "rounded-md text-sm transition-colors flex items-center "
             const classePadding = efetivamenteColapsada ? "justify-center p-2" : "px-3 py-2 gap-2.5"
             const classeAtivo = "bg-[var(--green-dim)] text-[var(--green)] font-medium"
