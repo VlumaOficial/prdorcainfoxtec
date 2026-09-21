@@ -4,13 +4,14 @@ Itens identificados mas adiados deliberadamente, com a fase em que devem ser ret
 
 ## Em hold
 
-### Modulo de Pedidos (orcamento aprovado -> pedido)
-- **Quando retomar:** codigo implementado; falta aplicar a migration no Supabase real e testar
-  end-to-end
-- **Especificacao completa:** [docs/PEDIDOS.md](PEDIDOS.md)
-- **Resumo:** orcamento aprovado gera pedido(s) vinculados (1:N, suporta parcial), com
-  numeracao derivada (PED-AAAA-NNN-XX), maquina de estados propria (Em Execucao / Entregue /
-  Faturado / Cancelado) e cancelamento em cascata ajustado para multiplos pedidos por orcamento
+### Bloqueio de exclusao de orcamento com pedido vinculado
+- **Quando retomar:** proxima melhoria do modulo de Pedidos, aguardando decisao
+- **Situacao:** `excluir()` em `useOrcamentos.ts` faz DELETE direto, sem checar pedidos
+  vinculados; como a FK `pedidos_orcamento_id_fkey` e `ON DELETE CASCADE`, excluir um orcamento
+  apaga silenciosamente qualquer pedido vinculado, inclusive um ja Faturado — contorna a
+  protecao que existe pro cancelamento
+- **Recomendacao:** trocar a FK pra `RESTRICT` + esconder "Excluir" quando status e
+  aprovado/cancelado. Detalhes em [docs/PEDIDOS.md](PEDIDOS.md), secao 12
 
 ### Card de distribuição de status no Dashboard
 - **Quando retomar:** F6, depois da F5 (Gerar Orçamento) estar pronta
@@ -26,6 +27,14 @@ Itens identificados mas adiados deliberadamente, com a fase em que devem ser ret
 (itens movidos para aqui conforme forem implementados)
 
 ## Concluído
+
+### Modulo de Pedidos (orcamento aprovado -> pedido)
+- **Especificacao completa:** [docs/PEDIDOS.md](PEDIDOS.md)
+- **Resumo:** orcamento aprovado gera pedido(s) vinculados (1:N, suporta parcial), com
+  numeracao derivada (PED-AAAA-NNN-XX), maquina de estados propria (Em Execucao / Entregue /
+  Faturado / Cancelado), cancelamento em cascata ajustado para multiplos pedidos por orcamento,
+  modal de dados fiscais no faturamento e painel de configuracao do PDF no pedido
+- **Testado end-to-end em producao** em 2026-09-21 (ver docs/PEDIDOS.md secao 11)
 
 ### Regra de negócio unificada: Cliente e Produto
 Confirmado que Cliente segue a mesma regra que Produto no orçamento:

@@ -1,6 +1,7 @@
 # Especificação — Módulo de Pedidos
 
-Status: **implementado no código, aguardando aplicação da migration no banco real**
+Status: **implementado, migration aplicada em produção, testado end-to-end na URL pública
+(orcamento.infoxtec.com.br) em 2026-09-21** — ver seção 11 para o relatório de testes.
 Origem: decisão de produto entre PO, UX e Engenharia (registrada aqui antes de codificar).
 Plano de implementação: `/home/sdorea/.claude/plans/happy-prancing-eich.md`.
 
@@ -156,7 +157,14 @@ preparado para uma futura integração real de emissão de NF-e, mas não obriga
 - Avisos de cascata sempre explícitos na UI antes de confirmar cancelamento, nos dois sentidos
   (ex.: "Isso também cancelará o pedido PED-2026-049-01 vinculado. Continuar?").
 - PDF do pedido reaproveita o gerador de PDF existente ([src/lib/gerarPdf.ts](../src/lib/gerarPdf.ts)),
-  trocando o rótulo "ORÇAMENTO" por "PEDIDO" no cabeçalho.
+  trocando o rótulo "ORÇAMENTO" por "PEDIDO" no cabeçalho e o prefixo do arquivo salvo
+  (`pedido-PED-...pdf`).
+- Painel **"Configurações do PDF"** na tela do Pedido
+  ([src/components/ConfiguracoesSidebarPedido.tsx](../src/components/ConfiguracoesSidebarPedido.tsx)),
+  espelhando os mesmos 5 toggles que já existem no orçamento (Imposto/Desconto/Quantidade/Valor
+  Unitário/Total por item no PDF) — sem os spinners de %, já que o pedido herda os percentuais do
+  orçamento aprovado e não deve permitir editá-los. Igual ao orçamento hoje, a escolha **não é
+  persistida no banco**, é só estado da sessão do formulário (reseta ao reabrir o pedido).
 - Dashboard atual continua olhando só para orçamentos (KPIs comerciais); KPIs de pedidos
   (em execução, entregues no mês, valor faturado no mês) ficam numa seção própria, sem misturar
   taxa de conversão de proposta com métricas de entrega/faturamento.
@@ -174,3 +182,62 @@ preparado para uma futura integração real de emissão de NF-e, mas não obriga
 - Quando um pedido é cancelado e libera itens de volta ao pool, deve haver algum registro
   histórico visível de que aquele item já passou por um pedido cancelado antes? (Auditoria /
   rastreabilidade, não definido ainda.)
+
+## 11. Testes end-to-end realizados (2026-09-21)
+
+Testado com Playwright direto na URL pública (`orcamento.infoxtec.com.br`), login real, após a
+migration aplicada e o deploy em produção via Vercel. Dois orçamentos de teste foram criados e
+depois removidos (ver `supabase/limpeza_teste_pedidos.sql`).
+
+| Cenário | Resultado |
+|---|---|
+| Login + navegação (item "Pedidos" no menu, sidebar colapsa igual à de Orçamentos) | OK |
+| Criar orçamento → Enviado → Aprovado | OK |
+| Aprovar abre a tela "Gerar Pedido" automaticamente, com o(s) item(ns) pré-marcado(s) | OK |
+| Gerar pedido com todos os itens (caso comum) — numeração `PED-2026-054-01` | OK |
+| Marcar pedido como Entregue → Faturado, com o modal pedindo NF/série/valor | OK |
+| Dados fiscais gravados e exibidos na tela do pedido faturado | OK |
+| **Cancelar orçamento com pedido já faturado vinculado → bloqueado** com a mensagem "Não é
+  possível cancelar: existe pedido já faturado vinculado a este orçamento." | OK |
+| Listagem de Pedidos (join com orçamento, número, cliente, valor faturado, status) | OK |
+| Orçamento com 2 itens → gerar pedido só com 1 item (parcial) | OK — `PED-2026-055-01` |
+| Botão "Novo Pedido (itens restantes)" aparece só com item pendente, some depois | OK |
+| Segunda seleção de itens mostra **somente** o item ainda não vinculado (exclusividade
+  item→pedido funcionando corretamente) | OK — `PED-2026-055-02` |
+| Painel "Configurações do PDF" no pedido: toggles começam desligados, alternam e o PDF sai
+  com o nome `pedido-PED-....pdf` (prefixo correto, distinto de `orcamento-...pdf`) | OK |
+| **Cascata de cancelamento — caso parcial**: cancelar 1 de 2 pedidos ativos do mesmo
+  orçamento NÃO cancela o orçamento (o outro pedido continua ativo) | OK |
+| **Cascata de cancelamento — último pedido**: cancelar o último pedido ativo/não-cancelado
+  cancela o orçamento junto | OK |
+| Isolamento multi-tenant nas RPCs novas (`criar_pedido`, `cancelar_pedido`,
+  `cancelar_orcamento`, `itens_disponiveis_orcamento`) | Corrigido antes do deploy — ver seção 12 |
+
+Não testado ainda: geração de PDF do orçamento com o painel de config recém-generalizado (só do
+pedido), e o cenário de reverter um pedido cancelado (não existe essa ação hoje, é intencional).
+
+## 12. Riscos conhecidos / pendências
+
+### Exclusão direta de orçamento ignora a proteção do cancelamento
+
+Descoberto ao gerar o script de limpeza dos dados de teste: a função `excluir()` em
+`useOrcamentos.ts` faz um `DELETE` direto na tabela `orcamentos`, sem nenhuma regra de negócio.
+Como `pedidos_orcamento_id_fkey` está como `ON DELETE CASCADE`, excluir um orçamento **apaga
+silenciosamente qualquer pedido vinculado — inclusive um já Faturado**, contornando por completo
+a proteção construída para o cancelamento (seção 6).
+
+Recomendação (ainda não implementada, aguardando decisão):
+1. Trocar a FK de `CASCADE` para `RESTRICT` — impede a exclusão no nível do banco enquanto
+   existir qualquer pedido vinculado, mesmo por acesso direto (não só pela UI).
+2. Esconder o botão "Excluir" na listagem de Orçamentos quando o status for `aprovado` ou
+   `cancelado` (mesma filosofia dos pedidos, que não têm exclusão — só cancelamento).
+   Rascunho/Enviado/Recusado/Expirado nunca geraram pedido, então excluir esses continua seguro.
+
+### Correção de segurança aplicada durante a implementação
+
+As 4 RPCs novas são `SECURITY DEFINER` (necessário para bypassar RLS e fazer as validações
+cruzadas entre tabelas). Na primeira versão da migration, nenhuma delas verificava se o
+orçamento/pedido pertencia à empresa de quem estava chamando — como RLS não se aplica dentro de
+`SECURITY DEFINER`, isso permitiria a um usuário autenticado de uma empresa cancelar ou gerar
+pedido em orçamento de outra empresa. Corrigido antes do deploy: todas as 4 funções agora
+verificam `empresa_id = (select empresa_id from get_meu_perfil())` antes de qualquer operação.
