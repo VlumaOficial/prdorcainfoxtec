@@ -216,22 +216,54 @@ depois removidos (ver `supabase/limpeza_teste_pedidos.sql`).
 Não testado ainda: geração de PDF do orçamento com o painel de config recém-generalizado (só do
 pedido), e o cenário de reverter um pedido cancelado (não existe essa ação hoje, é intencional).
 
+### Rodada extra (2026-09-21): correções de integridade orçamento↔pedido
+
+Testado após aplicar `20260921130909_protecao_orcamento_pedido.sql` em produção:
+
+| Cenário | Resultado |
+|---|---|
+| Orçamento aprovado com pedido vinculado → tabela de itens fica somente-leitura na UI, com
+  aviso "Itens travados — este orçamento já gerou pedido(s)" e sem botão "Adicionar item" | OK |
+| Editar só a "Observações gerais" desse orçamento e clicar "Salvar Alterações" → o pedido
+  já gerado **continua mostrando o item normalmente** (antes da correção, o item sumiria do
+  pedido por causa do `ON DELETE CASCADE` disparado pelo delete-e-recria de `orcamento_itens`) | OK |
+| Listagem de Orçamentos → botão "Excluir" não aparece mais para orçamento com status
+  `aprovado` | OK |
+| **Tentativa de exclusão direta via API** (`DELETE .../rest/v1/orcamentos?id=eq....`,
+  contornando a UI de propósito, com o token de uma sessão autenticada real) → banco recusa
+  com HTTP 409 / `23503 foreign_key_violation`, mesmo passando pela UI | OK |
+
 ## 12. Riscos conhecidos / pendências
 
-### Exclusão direta de orçamento ignora a proteção do cancelamento
+### ~~Exclusão direta de orçamento ignora a proteção do cancelamento~~ — corrigido em 2026-09-21
 
 Descoberto ao gerar o script de limpeza dos dados de teste: a função `excluir()` em
-`useOrcamentos.ts` faz um `DELETE` direto na tabela `orcamentos`, sem nenhuma regra de negócio.
-Como `pedidos_orcamento_id_fkey` está como `ON DELETE CASCADE`, excluir um orçamento **apaga
+`useOrcamentos.ts` fazia um `DELETE` direto na tabela `orcamentos`, sem nenhuma regra de negócio.
+Como `pedidos_orcamento_id_fkey` estava como `ON DELETE CASCADE`, excluir um orçamento **apagava
 silenciosamente qualquer pedido vinculado — inclusive um já Faturado**, contornando por completo
 a proteção construída para o cancelamento (seção 6).
 
-Recomendação (ainda não implementada, aguardando decisão):
-1. Trocar a FK de `CASCADE` para `RESTRICT` — impede a exclusão no nível do banco enquanto
-   existir qualquer pedido vinculado, mesmo por acesso direto (não só pela UI).
-2. Esconder o botão "Excluir" na listagem de Orçamentos quando o status for `aprovado` ou
-   `cancelado` (mesma filosofia dos pedidos, que não têm exclusão — só cancelamento).
-   Rascunho/Enviado/Recusado/Expirado nunca geraram pedido, então excluir esses continua seguro.
+Corrigido em `20260921130909_protecao_orcamento_pedido.sql`:
+1. FK trocada de `CASCADE` para `RESTRICT` — o banco recusa a exclusão no nível de dados
+   enquanto existir qualquer pedido vinculado, mesmo por acesso direto (testado via API direta,
+   contornando a UI de propósito — ver seção 11).
+2. Botão "Excluir" escondido na listagem de Orçamentos quando o status é `aprovado` ou
+   `cancelado`. Rascunho/Enviado/Recusado/Expirado nunca geraram pedido, continuam podendo ser
+   excluídos normalmente.
+
+### ~~Edição de orçamento quebra itens de pedido já gerado~~ — corrigido em 2026-09-21
+
+`atualizar_orcamento` sempre apagava e recriava **todos** os `orcamento_itens` a cada "Salvar
+Alterações" — como `pedido_itens.orcamento_item_id` tem `ON DELETE CASCADE`, isso quebrava
+silenciosamente o vínculo de qualquer pedido já gerado, mesmo editando só a observação, sem
+tocar nos itens.
+
+Corrigido na mesma migration, em duas camadas:
+1. **RPC**: se existir qualquer pedido vinculado ao orçamento (qualquer status), `atualizar_orcamento`
+   ignora o payload de itens e não toca em `orcamento_itens` — só atualiza o cabeçalho.
+2. **UI**: a tabela de itens em `NovoOrcamento.tsx` vira somente-leitura nesse caso (sem
+   adicionar/remover/editar), com aviso explicando o motivo. Escape hatch: cancelar o orçamento
+   e criar um novo, se for realmente necessário mudar os itens.
 
 ### Correção de segurança aplicada durante a implementação
 

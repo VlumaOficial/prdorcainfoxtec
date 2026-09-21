@@ -4,15 +4,6 @@ Itens identificados mas adiados deliberadamente, com a fase em que devem ser ret
 
 ## Em hold
 
-### Bloqueio de exclusao de orcamento com pedido vinculado
-- **Quando retomar:** proxima melhoria do modulo de Pedidos, aguardando decisao
-- **Situacao:** `excluir()` em `useOrcamentos.ts` faz DELETE direto, sem checar pedidos
-  vinculados; como a FK `pedidos_orcamento_id_fkey` e `ON DELETE CASCADE`, excluir um orcamento
-  apaga silenciosamente qualquer pedido vinculado, inclusive um ja Faturado — contorna a
-  protecao que existe pro cancelamento
-- **Recomendacao:** trocar a FK pra `RESTRICT` + esconder "Excluir" quando status e
-  aprovado/cancelado. Detalhes em [docs/PEDIDOS.md](PEDIDOS.md), secao 12
-
 ### Card de distribuição de status no Dashboard
 - **Quando retomar:** F6, depois da F5 (Gerar Orçamento) estar pronta
 - **Motivo do hold:** sem orçamentos reais cadastrados, o card ficaria zerado e não validaria o design (largura 2 colunas, formato de barras, cores por status)
@@ -35,6 +26,19 @@ Itens identificados mas adiados deliberadamente, com a fase em que devem ser ret
   Faturado / Cancelado), cancelamento em cascata ajustado para multiplos pedidos por orcamento,
   modal de dados fiscais no faturamento e painel de configuracao do PDF no pedido
 - **Testado end-to-end em producao** em 2026-09-21 (ver docs/PEDIDOS.md secao 11)
+
+### Protecao de integridade orcamento<->pedido
+- **Situacao anterior:** exclusao direta de orcamento ignorava a protecao do cancelamento
+  (FK `ON DELETE CASCADE` apagava pedidos em cascata, inclusive faturados); editar um orcamento
+  ja aprovado (so "Salvar Alteracoes", sem nem mexer nos itens) quebrava silenciosamente o
+  vinculo de qualquer pedido ja gerado, porque `atualizar_orcamento` sempre recriava todos os
+  `orcamento_itens` do zero
+- **Corrigido:** FK trocada pra `RESTRICT`; botao "Excluir" some da listagem quando aprovado/
+  cancelado; `atualizar_orcamento` ignora o payload de itens quando ja existe pedido vinculado;
+  tabela de itens vira somente-leitura na UI nesse caso
+- **Testado end-to-end em producao**, inclusive tentativa de exclusao direta via API
+  contornando a UI de proposito (bloqueada com HTTP 409) — detalhes em
+  [docs/PEDIDOS.md](PEDIDOS.md) secoes 11 e 12
 
 ### Regra de negócio unificada: Cliente e Produto
 Confirmado que Cliente segue a mesma regra que Produto no orçamento:
