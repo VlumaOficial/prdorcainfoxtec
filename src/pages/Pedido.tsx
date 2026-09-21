@@ -4,10 +4,12 @@ import Layout from '../components/Layout'
 import ResumoSidebar from '../components/ResumoSidebar'
 import PedidoStatusActions from '../components/PedidoStatusActions'
 import ModalFaturamento from '../components/ModalFaturamento'
+import ConfiguracoesSidebarPedido from '../components/ConfiguracoesSidebarPedido'
 import { carregarPedido } from '../hooks/useCarregarPedido'
 import type { PedidoCompleto } from '../hooks/useCarregarPedido'
 import { useAcoesPedido } from '../hooks/useAcoesPedido'
 import type { DadosFaturamento } from '../hooks/useAcoesPedido'
+import { useConfigGlobal } from '../hooks/useConfigGlobal'
 import { calcularTotais } from '../lib/calculo'
 import { gerarPdf } from '../lib/gerarPdf'
 import { fmtBR } from '../lib/numeros'
@@ -20,12 +22,14 @@ export default function Pedido() {
   const [carregando, setCarregando] = useState(true)
   const [modalFaturamentoAberto, setModalFaturamentoAberto] = useState(false)
   const { cancelarPedido, marcarEntregue, marcarFaturado, salvando, erro } = useAcoesPedido()
+  const configPdf = useConfigGlobal()
 
   async function carregar() {
     if (!id) return
     setCarregando(true)
     const dados = await carregarPedido(id)
     setPedido(dados)
+    if (dados) configPdf.carregar(dados.config)
     setCarregando(false)
   }
 
@@ -71,7 +75,7 @@ export default function Pedido() {
       cabecalho: pedido.cabecalho,
       cliente: pedido.cliente,
       itens: pedido.itens,
-      config: pedido.config,
+      config: configPdf.config,
       logoBase64,
       tipoDocumento: 'PEDIDO',
     })
@@ -93,7 +97,7 @@ export default function Pedido() {
     )
   }
 
-  const totais = calcularTotais(pedido.itens, pedido.config)
+  const totais = calcularTotais(pedido.itens, configPdf.config)
 
   return (
     <Layout>
@@ -185,8 +189,9 @@ export default function Pedido() {
           )}
         </div>
 
-        <div className="lg:sticky lg:top-6 self-start">
-          <ResumoSidebar itens={pedido.itens} config={pedido.config} />
+        <div className="lg:sticky lg:top-6 self-start flex flex-col gap-5">
+          <ConfiguracoesSidebarPedido config={configPdf.config} onAtualizar={configPdf.atualizar} />
+          <ResumoSidebar itens={pedido.itens} config={configPdf.config} />
         </div>
       </div>
 
