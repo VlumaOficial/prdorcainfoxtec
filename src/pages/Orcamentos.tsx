@@ -35,6 +35,12 @@ function StatusBadge({ status }: { status: StatusOrcamento }) {
   )
 }
 
+// Uma vez aprovado, o orcamento pode ter pedido(s) vinculado(s) — excluir direto quebraria
+// a integridade (ver docs/PEDIDOS.md secao 12). So sobra "Cancelar" a partir dali.
+function podeExcluir(status: StatusOrcamento): boolean {
+  return status !== 'aprovado' && status !== 'cancelado'
+}
+
 function formatarData(iso: string): string {
   const [ano, mes, dia] = iso.split('-')
   return `${dia}/${mes}/${ano}`
@@ -149,12 +155,14 @@ export default function Orcamentos() {
                   >
                     Abrir
                   </button>
-                  <button
-                    onClick={() => handleExcluir(o.id, o.numero)}
-                    className="text-[var(--red)] text-xs hover:underline"
-                  >
-                    Excluir
-                  </button>
+                  {podeExcluir(o.status) && (
+                    <button
+                      onClick={() => handleExcluir(o.id, o.numero)}
+                      className="text-[var(--red)] text-xs hover:underline"
+                    >
+                      Excluir
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}
@@ -184,12 +192,14 @@ export default function Orcamentos() {
               >
                 Abrir
               </button>
-              <button
-                onClick={() => handleExcluir(o.id, o.numero)}
-                className="text-[var(--red)] text-sm"
-              >
-                Excluir
-              </button>
+              {podeExcluir(o.status) && (
+                <button
+                  onClick={() => handleExcluir(o.id, o.numero)}
+                  className="text-[var(--red)] text-sm"
+                >
+                  Excluir
+                </button>
+              )}
             </div>
           </div>
         ))}

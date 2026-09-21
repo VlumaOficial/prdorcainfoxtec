@@ -10,6 +10,7 @@ import type { ConfigGlobal } from '../hooks/useConfigGlobal'
 interface Props {
   config: ConfigGlobal
   itens: ItemOrcamento[]
+  bloqueado?: boolean
   onAdicionar: () => void
   onRemover: (id: string) => void
   onAtualizar: (id: string, campo: keyof ItemOrcamento, valor: unknown) => void
@@ -120,6 +121,7 @@ const cv: CSSProperties = {
 export default function ItensTable({
   config,
   itens,
+  bloqueado,
   onAdicionar,
   onRemover,
   onAtualizar,
@@ -134,7 +136,22 @@ export default function ItensTable({
   const totais = calcularTotais(itens, config)
   return (
     <div>
-      <div style={{ overflowX: 'auto', overflowY: 'visible', borderRadius: '8px', border: '1px solid var(--border)' }}>
+      {bloqueado && (
+        <p style={{ fontSize: '12px', color: 'var(--amber)', marginBottom: '8px' }}>
+          Itens travados — este orçamento já gerou pedido(s). Para alterar itens, cancele o
+          orçamento e crie um novo.
+        </p>
+      )}
+      <div
+        style={{
+          overflowX: 'auto',
+          overflowY: 'visible',
+          borderRadius: '8px',
+          border: '1px solid var(--border)',
+          pointerEvents: bloqueado ? 'none' : 'auto',
+          opacity: bloqueado ? 0.6 : 1,
+        }}
+      >
         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '900px', tableLayout: 'auto' }}>
           <thead>
             <tr style={{ background: 'var(--navy3)' }}>
@@ -287,15 +304,17 @@ export default function ItensTable({
                   <td style={{ ...cv, color: 'var(--green)', fontWeight: 600, fontSize: '13px' }}>{custoTotal > 0 ? fmtBR(total) : '\u2014'}</td>
 
                   <td style={td}>
-                    <button
-                      type="button"
-                      onClick={() => onRemover(item.id)}
-                      className="text-[var(--text3)] hover:text-[var(--red)] hover:bg-[var(--red-dim)] rounded p-1 flex items-center"
-                    >
-                      <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
+                    {!bloqueado && (
+                      <button
+                        type="button"
+                        onClick={() => onRemover(item.id)}
+                        className="text-[var(--text3)] hover:text-[var(--red)] hover:bg-[var(--red-dim)] rounded p-1 flex items-center"
+                      >
+                        <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    )}
                   </td>
                 </tr>
               )
@@ -320,17 +339,19 @@ export default function ItensTable({
         </table>
       </div>
 
-      <button
-        type="button"
-        onClick={onAdicionar}
-        className="mt-3 hover:border-[var(--green)] hover:text-[var(--green)]"
-        style={{ background: 'transparent', border: '1px dashed var(--border2)', borderRadius: '8px', color: 'var(--text2)', fontSize: '12px', padding: '8px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', width: '100%', justifyContent: 'center' }}
-      >
-        <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-        </svg>
-        Adicionar item
-      </button>
+      {!bloqueado && (
+        <button
+          type="button"
+          onClick={onAdicionar}
+          className="mt-3 hover:border-[var(--green)] hover:text-[var(--green)]"
+          style={{ background: 'transparent', border: '1px dashed var(--border2)', borderRadius: '8px', color: 'var(--text2)', fontSize: '12px', padding: '8px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', width: '100%', justifyContent: 'center' }}
+        >
+          <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Adicionar item
+        </button>
+      )}
     </div>
   )
 }

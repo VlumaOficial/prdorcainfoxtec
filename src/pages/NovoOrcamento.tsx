@@ -199,6 +199,7 @@ export default function NovoOrcamento() {
   const [carregandoEdicao, setCarregandoEdicao] = useState(modoEdicao)
   const [selecaoPedidoAberta, setSelecaoPedidoAberta] = useState(false)
   const [itensDisponiveis, setItensDisponiveis] = useState(0)
+  const [temPedidos, setTemPedidos] = useState(false)
 
   useEffect(() => {
     if (!orcamentoId) return
@@ -214,7 +215,12 @@ export default function NovoOrcamento() {
       }
       setCarregandoEdicao(false)
     }
+    async function verificarPedidosVinculados() {
+      const { data } = await supabase.from('pedidos').select('id').eq('orcamento_id', orcamentoId).limit(1)
+      if (ativo) setTemPedidos((data || []).length > 0)
+    }
     carregar()
+    verificarPedidosVinculados()
     return () => { ativo = false }
   }, [orcamentoId])
 
@@ -358,6 +364,7 @@ export default function NovoOrcamento() {
             <ItensTable
               config={configState.config}
               itens={itensState.itens}
+              bloqueado={temPedidos}
               buscaPorItem={itensState.buscaPorItem}
               onAdicionar={itensState.adicionarItem}
               onRemover={itensState.removerItem}
