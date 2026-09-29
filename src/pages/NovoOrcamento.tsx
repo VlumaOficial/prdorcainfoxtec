@@ -15,6 +15,9 @@ import { carregarOrcamento } from '../hooks/useCarregarOrcamento'
 import StatusActions from '../components/StatusActions'
 import ModalDivergencias from '../components/ModalDivergencias'
 import SelecaoItensPedido from '../components/SelecaoItensPedido'
+import BannerRascunho from '../components/BannerRascunho'
+import { useRascunhoLocal } from '../hooks/useRascunhoLocal'
+import type { RascunhoOrcamentoV1 } from '../hooks/useRascunhoLocal'
 import { detectarDivergencias } from '../lib/detectarDivergencias'
 import type { Divergencia } from '../lib/detectarDivergencias'
 import { gerarPdf } from '../lib/gerarPdf'
@@ -62,7 +65,6 @@ export default function NovoOrcamento() {
   const navigate = useNavigate()
   const {
     carregar: carregarCabecalhoCliente,
-    resetar: resetarCabecalhoCliente,
     cabecalho,
     atualizarCampo,
     cliente,
@@ -93,13 +95,21 @@ export default function NovoOrcamento() {
 
   async function executarSalvamento() {
     const dados = montarDados()
-    const id = modoEdicao && orcamentoId
-      ? await atualizar(orcamentoId, dados, statusAtual)
-      : await salvar(dados)
+    if (modoEdicao && orcamentoId) {
+      const id = await atualizar(orcamentoId, dados, statusAtual)
+      if (id) {
+        limparRascunho()
+        setSalvoOk(true)
+        setTimeout(() => setSalvoOk(false), 3000)
+      }
+      return id
+    }
+    const id = await salvar(dados)
     if (id) {
-      setSalvoOk(true)
-      if (!modoEdicao) setMostrarPosSalvar(true)
-      setTimeout(() => setSalvoOk(false), 3000)
+      limparRascunho()
+      // Navega pra rota de edicao do orcamento recem-criado: sem isso, a tela ficava presa
+      // em /orcamentos/novo sem nenhum botao de salvar pra continuar editando.
+      navigate('/orcamentos/' + id, { replace: true })
     }
     return id
   }
@@ -178,21 +188,10 @@ export default function NovoOrcamento() {
     })
   }
 
-  async function handleCriarNovo() {
-    setSalvoOk(false)
-    setMostrarPosSalvar(false)
-    await resetarCabecalhoCliente()
-    itensState.resetar()
-    configState.resetar()
-    // Se estava numa rota de edicao, volta para /orcamentos/novo
-    if (modoEdicao) navigate('/orcamentos/novo')
-  }
-
   const itensState = useItensOrcamento()
   const configState = useConfigGlobal()
   const { salvar, atualizar, mudarStatus, cancelarOrcamento, atualizarCatalogo, salvando, erro } = useSalvarOrcamento()
   const [salvoOk, setSalvoOk] = useState(false)
-  const [mostrarPosSalvar, setMostrarPosSalvar] = useState(false)
   const [divergencias, setDivergencias] = useState<Divergencia[]>([])
   const [modalAberto, setModalAberto] = useState(false)
   const [statusAtual, setStatusAtual] = useState<string>('rascunho')
@@ -200,6 +199,29 @@ export default function NovoOrcamento() {
   const [selecaoPedidoAberta, setSelecaoPedidoAberta] = useState(false)
   const [itensDisponiveis, setItensDisponiveis] = useState(0)
   const [temPedidos, setTemPedidos] = useState(false)
+
+  // Rascunho local (Fase A) — ver docs/RASCUNHO_LOCAL.md. Chave por contexto: uma pro
+  // formulario de criacao, uma por orcamento em edicao.
+  const chaveRascunho = modoEdicao && orcamentoId ? `orcamento_rascunho_editar_${orcamentoId}` : 'orcamento_rascunho_novo'
+  const { agendarSalvar, carregarRascunho, limparRascunho } = useRascunhoLocal(chaveRascunho)
+  const [rascunhoDisponivel, setRascunhoDisponivel] = useState<RascunhoOrcamentoV1 | null>(null)
+  const [draftVerificado, setDraftVerificado] = useState(false)
+
+  function handleRestaurarRascunho() {
+    if (!rascunhoDisponivel) return
+    const d = rascunhoDisponivel.dados
+    carregarCabecalhoCliente(d.cabecalho, d.cliente, d.clienteVinculado, d.clienteAvulso)
+    itensState.carregar(d.itens)
+    configState.carregar(d.config)
+    setRascunhoDisponivel(null)
+    setDraftVerificado(true)
+  }
+
+  function handleDescartarRascunho() {
+    limparRascunho()
+    setRascunhoDisponivel(null)
+    setDraftVerificado(true)
+  }
 
   useEffect(() => {
     if (!orcamentoId) return
@@ -231,6 +253,36 @@ export default function NovoOrcamento() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orcamentoId, statusAtual, selecaoPedidoAberta])
 
+  // Verifica se ha um rascunho local nao salvo pra este contexto (criacao ou este orcamento
+  // especifico). So oferece — nunca restaura sozinho, pra nao sobrescrever um comeco novo.
+  useEffect(() => {
+    setRascunhoDisponivel(null)
+    setDraftVerificado(false)
+    const r = carregarRascunho()
+    if (r) {
+      setRascunhoDisponivel(r)
+    } else {
+      setDraftVerificado(true)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chaveRascunho])
+
+  // Rastreia mudancas no formulario e agenda o salvamento local (debounced). So comeca depois
+  // que a oferta de rascunho anterior foi resolvida (restaurada ou descartada), senao um save
+  // automatico no meio do caminho sobrescreveria o rascunho antes do usuario decidir.
+  useEffect(() => {
+    if (!draftVerificado) return
+    agendarSalvar({
+      cabecalho,
+      cliente,
+      clienteVinculado,
+      clienteAvulso,
+      itens: itensState.itens,
+      config: configState.config,
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draftVerificado, cabecalho, cliente, clienteVinculado, clienteAvulso, itensState.itens, configState.config])
+
   if (carregandoEdicao) {
     return (
       <Layout>
@@ -243,6 +295,13 @@ export default function NovoOrcamento() {
 
   return (
     <Layout>
+      {rascunhoDisponivel && (
+        <BannerRascunho
+          atualizadoEm={rascunhoDisponivel.atualizadoEm}
+          onRestaurar={handleRestaurarRascunho}
+          onDescartar={handleDescartarRascunho}
+        />
+      )}
       {modoEdicao && (
         <div className="mb-4 p-3 rounded-lg flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3" style={{ background: 'var(--navy2)', border: '1px solid var(--border)' }}>
           <StatusActions
@@ -467,77 +526,24 @@ export default function NovoOrcamento() {
             </span>
           )}
 
-          {mostrarPosSalvar && !erro && !modoEdicao ? (
-            <>
-              <button
-                type="button"
-                onClick={handleGerarPdf}
-                style={{
-                  background: 'var(--blue)',
-                  color: '#fff',
-                  fontWeight: 600,
-                  fontSize: '14px',
-                  padding: '10px 20px',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  border: 'none',
-                }}
-              >
-                Gerar PDF
-              </button>
-              <button
-                type="button"
-                onClick={handleCriarNovo}
-                style={{
-                  background: 'transparent',
-                  color: 'var(--green)',
-                  fontWeight: 600,
-                  fontSize: '14px',
-                  padding: '10px 20px',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  border: '1px solid var(--green)',
-                }}
-              >
-                + Criar Novo
-              </button>
-              <button
-                type="button"
-                onClick={() => navigate('/orcamentos')}
-                style={{
-                  background: 'var(--green)',
-                  color: '#fff',
-                  fontWeight: 600,
-                  fontSize: '14px',
-                  padding: '10px 24px',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  border: 'none',
-                }}
-              >
-                Ir para Listagem
-              </button>
-            </>
-          ) : (
-            <button
-              type="button"
-              onClick={handleSalvar}
-              disabled={salvando}
-              style={{
-                background: 'var(--green)',
-                color: '#fff',
-                fontWeight: 600,
-                fontSize: '14px',
-                padding: '10px 24px',
-                borderRadius: '8px',
-                cursor: salvando ? 'not-allowed' : 'pointer',
-                opacity: salvando ? 0.6 : 1,
-                border: 'none',
-              }}
-            >
-              {salvando ? 'Salvando...' : modoEdicao ? 'Salvar Alterações' : 'Salvar Orçamento'}
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={handleSalvar}
+            disabled={salvando}
+            style={{
+              background: 'var(--green)',
+              color: '#fff',
+              fontWeight: 600,
+              fontSize: '14px',
+              padding: '10px 24px',
+              borderRadius: '8px',
+              cursor: salvando ? 'not-allowed' : 'pointer',
+              opacity: salvando ? 0.6 : 1,
+              border: 'none',
+            }}
+          >
+            {salvando ? 'Salvando...' : modoEdicao ? 'Salvar Alterações' : 'Salvar Orçamento'}
+          </button>
         </div>
       </div>
 

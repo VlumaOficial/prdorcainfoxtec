@@ -47,6 +47,19 @@ Confirmado que Cliente segue a mesma regra que Produto no orçamento:
 
 ### Melhorias de UX pós-salvamento de orçamento
 - **Confirmado implementado**: `NovoOrcamento.tsx` não usa mais `alert()` — mostra selo inline
-  "✓ Orçamento salvo com sucesso" e, ao salvar um orçamento novo, troca a área de ação por
-  "Gerar PDF" / "+ Criar Novo" / "Ir para Listagem", exatamente como planejado aqui. Mesma
-  situação do item acima: código já estava pronto, backlog que estava desatualizado
+  "✓ Orçamento salvo com sucesso". Backlog que estava desatualizado, código já estava pronto.
+- **Atualizado em 2026-09-29**: a barra "Gerar PDF" / "+ Criar Novo" / "Ir para Listagem" pós-save
+  foi removida — ver item "Rascunho automático de orçamento" abaixo, ela tinha um problema real
+  (ficava sem nenhum botão de salvar pra continuar editando)
+
+### Rascunho automático de orçamento + botão "Salvar" sumido após criar
+- **Situacao anterior:** formulário só vivia em memória — fechar o navegador ou recarregar a
+  página antes de salvar perdia tudo digitado (sem `localStorage`, sem autosave). Depois de
+  salvar um orçamento novo, a página ficava presa em `/orcamentos/novo` sem nenhum botão de
+  salvar pra continuar editando (só "Gerar PDF" / "Criar Novo" / "Ir para Listagem")
+- **Corrigido:** rascunho automático em `localStorage` (debounced, com banner de restaurar/
+  descartar, nunca restaura sozinho); ao salvar um orçamento novo, navega pra `/orcamentos/:id` e
+  cai no fluxo de edição normal, que sempre tem "Salvar Alterações" disponível
+- **Especificação completa, incluindo roadmap da Fase B (rascunho no banco):**
+  [docs/RASCUNHO_LOCAL.md](RASCUNHO_LOCAL.md)
+- **Testado end-to-end em produção** em 2026-09-29
