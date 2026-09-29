@@ -62,4 +62,4 @@ Confirmado que Cliente segue a mesma regra que Produto no orçamento:
   cai no fluxo de edição normal, que sempre tem "Salvar Alterações" disponível
 - **Especificação completa, incluindo roadmap da Fase B (rascunho no banco):**
   [docs/RASCUNHO_LOCAL.md](RASCUNHO_LOCAL.md)
-- **Testado end-to-end em produção** em 2026-09-29
+- **Testado end-to-end em produção** em 2026-09-29 (7 cenários, ver docs/RASCUNHO_LOCAL.md)

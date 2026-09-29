@@ -49,6 +49,24 @@ Hook: [`src/hooks/useRascunhoLocal.ts`](../src/hooks/useRascunhoLocal.ts). Compo
 O rascunho fica preso ao navegador/computador onde foi digitado — não aparece se o usuário abrir
 o mesmo orçamento de outro dispositivo. Resolvido na Fase B.
 
+## Testes end-to-end realizados (2026-09-29)
+
+Testado com Playwright direto em produção, login real, após o deploy:
+
+| Cenário | Resultado |
+|---|---|
+| Preencher `/orcamentos/novo` sem salvar, recarregar → banner "Encontramos um rascunho não salvo de [data/hora]" aparece | OK |
+| Clicar "Restaurar" → cliente, título e item voltam exatamente como estavam | OK |
+| Salvar o orçamento restaurado → URL vira `/orcamentos/:id`, `StatusActions` aparece,
+  botão "Salvar Alterações" disponível (o botão que antes sumia) | OK |
+| Editar de novo **sem sair da página** e clicar "Salvar Alterações" → salva normalmente,
+  sem precisar voltar pra listagem e reabrir | OK |
+| Rascunho é limpo após salvar — reload seguinte não mostra mais o banner | OK |
+| Preencher, aguardar autosave, recarregar, clicar "Descartar" → banner some e não
+  reaparece em um novo reload | OK |
+| Editar um orçamento **existente** (`/orcamentos/:id`), mudar observações sem salvar,
+  recarregar → o mesmo banner de rascunho aparece também nesse contexto | OK |
+
 ## Fase B — rascunho real no banco (não implementada, roteiro documentado)
 
 Evolução natural, não uma substituição: o `localStorage` passa a ser o **cache rápido/offline**
